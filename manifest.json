@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Name changer for home.mephi.ru",
+  "version": "1.1",
+  "description": "Меняет имя пользователя на home.mephi",
+  "icons": {
+    "128": "200.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [ "https://home.mephi.ru/*" ],
+      "js": [ "app.js" ]
+    }
+  ]
+}
