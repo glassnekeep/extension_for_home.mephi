@@ -4,6 +4,29 @@ if(name) {
     name[0].innerHTML = "Вася Петькин";
 }
 
+function getGroupMembersDOM() {
+    let buttonGroup = document.querySelector(".btn-group");
+    let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
+    groupTimetableUrl = groupTimetableUrl.replace("schedule", "");
+    fetch(groupTimetableUrl)
+        .then(res => res.text())
+        .then((responseText) => {
+            let doc = new DOMParser().parseFromString(responseText, 'text/html');
+            let memberList = doc.querySelectorAll(".list-group-item");
+            let tableDiv = document.createElement("div");
+            let table = document.createElement("table");
+            for(let i = 0; i < memberList.length; i++) {
+                let tr = document.createElement("tr");
+                tr.setAttribute("class", "table-raw-group-member");
+                tr.textContent = memberList[i].textContent;
+                table.append(tr);
+            }
+            let mainContainer = document.querySelector(".row");
+            tableDiv.append(table);
+            mainContainer.append(tableDiv);
+        })
+}
+
 function parseToRFC2822(x) {
     let str = x.substring(4, x.length);
     console.log(str);
@@ -84,55 +107,8 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
 }
 
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
-    document.head.innerHTML += "<style>//* Dropdown Button */\n" +
-        "span {\n" +
-        "    background-color: #4CAF50;\n" +
-        "    color: white;\n" +
-        "    margin-top: 32px;\n" +
-        "    padding: 16px;\n" +
-        "    font-size: 16px;\n" +
-        "    border: none;\n" +
-        "}\n" +
-        "\n" +
-        "/* The container <div> - needed to position the dropdown content */\n" +
-        ".dropdown {\n" +
-        "    position: relative;\n" +
-        "    display: inline-block;\n" +
-        "    transition : 1s;\n" +
-        "}\n" +
-        ".dropdown:hover {\n" +
-        "    min-height: 60px;\n" +
-        "    transition : 1s;\n" +
-        "}\n" +
-        "\n" +
-        "/* Dropdown Content (Hidden by Default) */\n" +
-        ".dropdown-content {\n" +
-        "    display: none;\n" +
-        "    position: relative;\n" +
-        "    background-color: #f1f1f1;\n" +
-        "    min-width: 10px;\n" +
-        "    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);\n" +
-        "    z-index: 1;\n" +
-        "}\n" +
-        "\n" +
-        "/* Links inside the dropdown */\n" +
-        ".dropdown-content a {\n" +
-        "    color: black;\n" +
-        /*"    padding: 12px 16px;\n" +*/
-        "    text-decoration: none;\n" +
-        "    display: block;\n" +
-        "}\n" +
-        "\n" +
-        "/* Change color of dropdown links on hover */\n" +
-        ".dropdown-content a:hover {background-color: #5fc663;}\n" +
-        "\n" +
-        "/* Show the dropdown menu on hover */\n" +
-        ".dropdown:hover .dropdown-content {display: block; position: fixed}\n" +
-        "\n" +
-        "/* Change the background color of the dropdown button when the dropdown content is shown */\n" +
-        ".dropdown:hover .dropbtn {background-color: #3e8e41;}" +
-        /*".list-group-item {min-height: 100px}" +*/
-        "#write-letter-to-tutor {font-size: 16px; color: #f1f1f1}</style>"
+    getGroupMembersDOM();
+
     let tutorList = document.querySelectorAll("span.text-nowrap");
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
@@ -156,4 +132,6 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
                 })
             })
     }
+
+
 }

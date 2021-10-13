@@ -9,7 +9,8 @@
   "content_scripts": [
     {
       "matches": [ "https://home.mephi.ru/*" ],
-      "js": [ "app.js" ]
+      "js": [ "app.js" ],
+      "css": [ "table.css"]
     }
   ]
 }
