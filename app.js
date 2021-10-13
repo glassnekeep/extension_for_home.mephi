@@ -103,13 +103,17 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
         "    padding: 16px;\n" +
         "    font-size: 16px;\n" +
         "    border: none;\n" +
-        "    min-height: 100px;\n" +
         "}\n" +
         "\n" +
         "/* The container <div> - needed to position the dropdown content */\n" +
         ".dropdown {\n" +
         "    position: relative;\n" +
         "    display: inline-block;\n" +
+        "    transition : 1s;\n" +
+        "}\n" +
+        ".dropdown:hover {\n" +
+        "    min-height: 60px;\n" +
+        "    transition : 1s;\n" +
         "}\n" +
         "\n" +
         "/* Dropdown Content (Hidden by Default) */\n" +
@@ -138,6 +142,7 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
         "\n" +
         "/* Change the background color of the dropdown button when the dropdown content is shown */\n" +
         ".dropdown:hover .dropbtn {background-color: #3e8e41;}" +
+        /*".list-group-item {min-height: 100px}" +*/
         "#write-letter-to-tutor {font-size: 16px; color: #f1f1f1}</style>"
     let tutorList = document.querySelectorAll("span.text-nowrap");
     for(let i = 0; i < tutorList.length; i++) {
