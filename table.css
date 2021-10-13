@@ -1,0 +1,64 @@
+table {
+    border: 1px solid gray;
+    position: inherit;
+    background: chocolate;
+}
+tr {
+    border: 1px solid gray;
+    padding: 10px;
+    min-width: 5000px;
+    background: white;
+}
+
+/*span {
+    background-color: #4CAF50;
+    color: white;
+    margin-top: 32px;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+}*/
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    transition: 1s;
+}
+
+.dropdown:hover {
+    min-height: 60px;
+    transition: 1s;
+}
+
+.dropdown-content {
+    display: none;
+    position: relative;
+    background-color: #f1f1f1;
+    min-width: 10px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #5fc663;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    position: relative;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+#write-letter-to-tutor {
+    font-size: 16px;
+    color: #f1f1f1;
+}
