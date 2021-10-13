@@ -51,17 +51,6 @@ function parseToRFC2822(x) {
     return str;
 }
 
-/*function showPopup(evt) {
-    var iconPos = myicon.getBoundingClientRect();
-    mypopup.style.left = (iconPos.right + 20) + "px";
-    mypopup.style.top = (window.scrollY + iconPos.top - 60) + "px";
-    mypopup.style.display = "block";
-}
-
-function hidePopup(evt) {
-    mypopup.style.display = "none";
-}*/
-
 if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     let nodeList = document.querySelectorAll(".list-group-item");
     let itemsArray = [];
@@ -147,20 +136,16 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
     let tutorList = document.querySelectorAll("span.text-nowrap");
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-        //alert(tutorTimetableHref);
         let writeLetterUrl = "";
         fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
             .then(res => res.text())
             .then((responseText) => {
                 const doc = new DOMParser().parseFromString(responseText, 'text/html');
                 const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                //alert(h1);
-                //alert(h1.getAttribute("href"));
                 fetch(tutorPersonalPageUrl)
                     .then(result => result.text())
                     .then((respondText) => {
                     const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                    //alert(docPersonal.querySelector(".btn-primary").getAttribute("href"));
                     writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
                         tutorList[i].outerHTML = "<div class=\"dropdown\">\n" + tutorList[i].outerHTML +
                             "        <div class=\"dropdown-content\">\n" +
