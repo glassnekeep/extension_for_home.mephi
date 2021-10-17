@@ -10,7 +10,7 @@
     {
       "matches": [ "https://home.mephi.ru/*" ],
       "js": [ "app.js" ],
-      "css": [ "table.css"]
+      "css": [ "main.css"]
     }
   ]
 }
