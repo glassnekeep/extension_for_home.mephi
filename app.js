@@ -173,6 +173,9 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     datePicker.setAttribute("type", "date");
     datePicker.setAttribute("id", "datePicker");
     datePicker.setAttribute("name", "lectureDatePicker");
+    let clearButton = document.createElement("button");
+    clearButton.textContent = "Очистить";
+    clearButton.setAttribute("id", "clearTheFilter");
     let div = document.querySelector(".pagination");
     let setOfSubjects = new Set();
     let baseNodeList = document.querySelectorAll(".list-group-item");
@@ -183,6 +186,7 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     })
     div.after(element);
     element.after(datePicker);
+    datePicker.after(clearButton);
     setOfSubjects.delete("");
     let disabledOption = document.createElement("option");
     disabledOption.setAttribute("selected", "selected");
@@ -197,6 +201,11 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
         filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
     }
     datePicker.onchange = function() {
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    clearButton.onclick = function() {
+        element.value = "Предмет не выбран";
+        datePicker.value = "";
         filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
     }
 }
