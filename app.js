@@ -111,6 +111,102 @@ function parseToParsableDate(x) {
     return str;
 }
 
+function filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList) {
+    let chosenSubjectText = element.value.toString();
+    let itemsArray = [];
+    let nodeList = document.querySelectorAll(".list-group-item");
+    for(let i = 0; i < baseNodeList.length; i++) {
+        let currentNode = baseNodeList[i];
+        let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
+        if(datePicker.value !== "") {
+            let stringCurrentNodeDate = currentNode.querySelector("h4").textContent.split("\n")[2].trim();
+            let currentNodeDate = new Date();
+            currentNodeDate.setTime(Date.parse(parseToParsableDate(stringCurrentNodeDate)));
+            let chosenDateString = datePicker.value.toString();
+            let chosenDate = new Date();
+            chosenDate.setTime(Date.parse(chosenDateString));
+            currentNodeDate = currentNodeDate.toLocaleDateString();
+            chosenDate = chosenDate.toLocaleDateString();
+            if(!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
+                if(chosenSubjectText === "Предмет не выбран") {
+                    itemsArray.push(currentNode);
+                } else {
+                    if(subjectOfCurrentNode === chosenSubjectText) {
+                        itemsArray.push(currentNode);
+                    }
+                }
+            }
+        } else {
+            if(chosenSubjectText === "Предмет не выбран") {
+                itemsArray.push(currentNode);
+            } else {
+                if(subjectOfCurrentNode === chosenSubjectText) {
+                    itemsArray.push(currentNode);
+                }
+            }
+        }
+    }
+    /*if(chosenSubjectText === "Предмет не выбран") {
+        for(let i = 0; i < baseNodeList.length; i++) {
+            let currentNode = baseNodeList[i];
+            let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
+                if(datePicker.value !== "") {
+                    let stringCurrentNodeDate = currentNode.querySelector("h4").textContent.split("\n")[2].trim();
+                    let currentNodeDate = new Date();
+                    currentNodeDate.setTime(Date.parse(parseToParsableDate(stringCurrentNodeDate)));
+                    let chosenDateString = datePicker.value.toString();
+                    let chosenDate = new Date();
+                    chosenDate.setTime(Date.parse(chosenDateString));
+                    currentNodeDate = currentNodeDate.toLocaleDateString();
+                    chosenDate = chosenDate.toLocaleDateString();
+                    if(!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
+                        itemsArray.push(currentNode);
+                    }
+                } else {
+                    itemsArray.push(currentNode);
+                }
+        }
+    } else {
+        for(let i = 0; i < baseNodeList.length; i++) {
+            let currentNode = baseNodeList[i];
+            let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
+            if(subjectOfCurrentNode === chosenSubjectText) {
+                if(datePicker.value !== "") {
+                    let stringCurrentNodeDate = currentNode.querySelector("h4").textContent.split("\n")[2].trim();
+                    let currentNodeDate = new Date();
+                    currentNodeDate.setTime(Date.parse(parseToParsableDate(stringCurrentNodeDate)));
+                    let chosenDateString = datePicker.value.toString();
+                    let chosenDate = new Date();
+                    chosenDate.setTime(Date.parse(chosenDateString));
+                    currentNodeDate = currentNodeDate.toLocaleDateString();
+                    chosenDate = chosenDate.toLocaleDateString();
+                    if(!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
+                        itemsArray.push(currentNode);
+                    }
+                } else {
+                    itemsArray.push(currentNode);
+                }
+            }
+        }
+    }*/
+    nodeList.forEach(function(node) {
+        parent.removeChild(node);
+    })
+    itemsArray.sort(function (nodeA, nodeB) {
+        let stringDateA = nodeA.querySelector("h4").innerText.split("\n")[2].trim();
+        let stringDateB = nodeB.querySelector("h4").innerText.split("\n")[2].trim();
+        let dateA = new Date();
+        let dateB = new Date();
+        dateA.setTime(Date.parse(parseToRFC2822(stringDateA)));
+        dateB.setTime(Date.parse(parseToRFC2822(stringDateB)));
+        if(dateA > dateB) return -1;
+        if(dateA < dateB) return 1;
+        return 0;
+    }).forEach(function (node) {
+        parent.appendChild(node);
+    })
+}
+
 if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     let element = document.createElement("select");
     element.setAttribute("name", "selectSubject");
@@ -140,8 +236,9 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
         element.append(option);
     })
     element.onchange = function() {
-        datePicker.value = "";
-        let chosenSubjectText = this.value.toString();
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+        //datePicker.value = "";
+        /*let chosenSubjectText = element.value.toString();
         if(chosenSubjectText === "Предмет не выбран") {
             baseNodeList.forEach(function(node) {
                 parent.appendChild(node);
@@ -188,17 +285,26 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
         }).forEach(function (node) {
             parent.appendChild(node);
         })
-        console.log(parent.children.length);
+        console.log(parent.children.length);*/
     }
     datePicker.onchange = function() {
-        element.value = "Предмет не выбран";
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+        //element.value = "Предмет не выбран";
+        /*let chosenSubjectText = element.value.toString();
+        if (chosenSubjectText === "Предмет не выбран") {
+            baseNodeList.forEach(function (node) {
+                parent.appendChild(node);
+            })
+            console.log(parent.children.length);
+            return;
+        }
         let nodeList = document.querySelectorAll(".list-group-item");
         let itemsArray = [];
-        for(let i = 0; i < baseNodeList.length; i++) {
+        for (let i = 0; i < baseNodeList.length; i++) {
             let currentNode = baseNodeList[i];
-            //let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
-            //if(subjectOfCurrentNode === chosenSubjectText) {
-                if(datePicker.value !== "") {
+            let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
+            if (subjectOfCurrentNode === chosenSubjectText) {
+                if (datePicker.value !== "") {
                     let stringCurrentNodeDate = currentNode.querySelector("h4").textContent.split("\n")[2].trim();
                     let currentNodeDate = new Date();
                     currentNodeDate.setTime(Date.parse(parseToParsableDate(stringCurrentNodeDate)));
@@ -207,15 +313,15 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
                     chosenDate.setTime(Date.parse(chosenDateString));
                     currentNodeDate = currentNodeDate.toLocaleDateString();
                     chosenDate = chosenDate.toLocaleDateString();
-                    if(!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
+                    if (!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
                         itemsArray.push(currentNode);
                     }
                 } else {
                     itemsArray.push(currentNode);
                 }
-            //}
+            }
         }
-        nodeList.forEach(function(node) {
+        nodeList.forEach(function (node) {
             parent.removeChild(node);
         })
         itemsArray.sort(function (nodeA, nodeB) {
@@ -225,13 +331,13 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
             let dateB = new Date();
             dateA.setTime(Date.parse(parseToRFC2822(stringDateA)));
             dateB.setTime(Date.parse(parseToRFC2822(stringDateB)));
-            if(dateA > dateB) return -1;
-            if(dateA < dateB) return 1;
+            if (dateA > dateB) return -1;
+            if (dateA < dateB) return 1;
             return 0;
         }).forEach(function (node) {
             parent.appendChild(node);
         })
-        console.log(parent.children.length);
+        console.log(parent.children.length);*/
     }
 }
 
