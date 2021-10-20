@@ -10,15 +10,6 @@ tr {
     background: white;
 }
 
-/*span {
-background-color: #4CAF50;
-color: white;
-margin-top: 32px;
-padding: 16px;
-font-size: 16px;
-border: none;
-}*/
-
 .dropdown {
     position: relative;
     display: inline-block;
@@ -62,4 +53,9 @@ border: none;
 #write-letter-to-tutor {
     font-size: 16px;
     color: #f1f1f1;
+}
+
+#selector {
+    position: relative;
+    padding: 10px;
 }
