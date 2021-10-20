@@ -112,6 +112,30 @@ function parseToParsableDate(x) {
     return str;
 }
 
+async function getFullLNodeList(nodeListList) {
+    let nodeList = Array.from(nodeListList);
+    let numberOfPages = document.querySelector(".pagination").querySelectorAll(".page");
+    if(numberOfPages.length === 1) {return nodeList;}
+    let linksArray = [];
+    for(let i = 1; i < numberOfPages.length; i++) {
+        let link = numberOfPages[i].querySelector("a").getAttribute("href");
+        linksArray.push(link);
+    }
+    for(let i = 0; i < linksArray.length; i++) {
+        await fetch(linksArray[i])
+            .then(res => res.text())
+            .then((responseText) => {
+                let doc = new DOMParser().parseFromString(responseText, 'text/html');
+                let localNodeList = doc.querySelectorAll(".list-group-item");
+                localNodeList.forEach(function(node) {
+                    nodeList.push(node);
+                })
+            })
+    }
+    console.log(nodeList.length);
+    return nodeList;
+}
+
 function filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList) {
     let chosenSubjectText = element.value.toString();
     let itemsArray = [];
@@ -165,7 +189,7 @@ function filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, base
     })
 }
 
-if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+async function lessonVideosMainFunction() {
     let element = document.createElement("select");
     element.setAttribute("name", "selectSubject");
     element.setAttribute("id", "selector");
@@ -180,6 +204,14 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     let setOfSubjects = new Set();
     let baseNodeList = document.querySelectorAll(".list-group-item");
     let parent = baseNodeList[0].parentNode;
+    let fullNodeList = [];
+    await getFullLNodeList(baseNodeList).then(array => {
+        console.log(array.length);
+        array.forEach(function(node) {
+            fullNodeList.push(node);
+        })
+    });
+    console.log(fullNodeList.length + "   fullNodeList.length");
     baseNodeList.forEach(function(node) {
         let subject = node.querySelector("span").textContent.split("\n")[2];
         setOfSubjects.add(subject);
@@ -208,6 +240,61 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
         datePicker.value = "";
         filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
     }
+    return 0;
+}
+
+if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+    lessonVideosMainFunction().then(res => console.log(res + "   res"));
+    /*let element = document.createElement("select");
+    element.setAttribute("name", "selectSubject");
+    element.setAttribute("id", "selector");
+    let datePicker = document.createElement("input");
+    datePicker.setAttribute("type", "date");
+    datePicker.setAttribute("id", "datePicker");
+    datePicker.setAttribute("name", "lectureDatePicker");
+    let clearButton = document.createElement("button");
+    clearButton.textContent = "Очистить";
+    clearButton.setAttribute("id", "clearTheFilter");
+    let div = document.querySelector(".pagination");
+    let setOfSubjects = new Set();
+    let baseNodeList = document.querySelectorAll(".list-group-item");
+    let parent = baseNodeList[0].parentNode;
+    let fullNodeList = [];
+    getFullLNodeList(baseNodeList).then(array => {
+        console.log(array.length);
+        array.forEach(function(node) {
+            fullNodeList.push(node);
+        })
+    });
+    console.log(fullNodeList.length + "   fullNodeList.length");
+    baseNodeList.forEach(function(node) {
+        let subject = node.querySelector("span").textContent.split("\n")[2];
+        setOfSubjects.add(subject);
+    })
+    div.after(element);
+    element.after(datePicker);
+    datePicker.after(clearButton);
+    setOfSubjects.delete("");
+    let disabledOption = document.createElement("option");
+    disabledOption.setAttribute("selected", "selected");
+    disabledOption.textContent = "Предмет не выбран";
+    element.append(disabledOption);
+    setOfSubjects.forEach(function(elem) {
+        let option = document.createElement("option");
+        option.textContent = elem;
+        element.append(option);
+    })
+    element.onchange = function() {
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    datePicker.onchange = function() {
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    clearButton.onclick = function() {
+        element.value = "Предмет не выбран";
+        datePicker.value = "";
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }*/
 }
 
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
