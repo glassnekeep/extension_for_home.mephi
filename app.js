@@ -1,9 +1,3 @@
-const name = document.getElementsByClassName("hidden-xs");
-
-if(name) {
-    name[0].innerHTML = "Вася Петькин";
-}
-
 function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
@@ -29,9 +23,7 @@ function getGroupMembersDOM() {
 
 function parseToRFC2822(x) {
     let str = x.substring(4, x.length);
-    console.log(str);
-    a = str.split(" ")[1];
-    console.log(a);
+    let a = str.split(" ")[1];
     switch (a) {
         case "января":
             str = str.replace("января", "January");
@@ -74,24 +66,115 @@ function parseToRFC2822(x) {
     return str;
 }
 
-if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
-    let nodeList = document.querySelectorAll(".list-group-item");
-    let itemsArray = [];
-    let parent = nodeList[0].parentNode;
-    for(let i = 0; i < nodeList.length; i++) {
-        itemsArray.push(parent.removeChild(nodeList[i]));
+function parseToParsableDate(x) {
+    let str = x.substring(4, x.length);
+    let a = str.split(" ")[1];
+    switch (a) {
+        case "января":
+            str = str.replace("января", "January");
+            break;
+        case "февраля":
+            str = str.replace("февраля", "February");
+            break;
+        case "марта":
+            str = str.replace("марта", "March");
+            break;
+        case "апреля":
+            str = str.replace("апреля", "April");
+            break;
+        case "мая":
+            str = str.replace("мая", "May");
+            break;
+        case "июня":
+            str.replace("июня", "June");
+            break;
+        case "июля":
+            str = str.replace("июля", "July");
+            break;
+        case "августа":
+            str = str.replace("августа", "August");
+            break;
+        case "сентября":
+            str = str.replace("сентября", "September");
+            break;
+        case "октября":
+            str = str.replace("октября", "October");
+            break;
+        case "ноября":
+            str = str.replace("ноября", "November");
+            break;
+        case "декабря":
+            str = str.replace("декабря", "December");
+            break;
     }
+    str = str.split(":")[0];
+    str = str.substring(0, str.length - 3);
+    return str;
+}
+
+async function getFullLNodeList(nodeListList) {
+    let nodeList = Array.from(nodeListList);
+    let numberOfPages = document.querySelector(".pagination").querySelectorAll(".page");
+    if(numberOfPages.length === 1) {return nodeList;}
+    let linksArray = [];
+    for(let i = 1; i < numberOfPages.length; i++) {
+        let link = numberOfPages[i].querySelector("a").getAttribute("href");
+        linksArray.push(link);
+    }
+    for(let i = 0; i < linksArray.length; i++) {
+        await fetch(linksArray[i])
+            .then(res => res.text())
+            .then((responseText) => {
+                let doc = new DOMParser().parseFromString(responseText, 'text/html');
+                let localNodeList = doc.querySelectorAll(".list-group-item");
+                localNodeList.forEach(function(node) {
+                    nodeList.push(node);
+                })
+            })
+    }
+    console.log(nodeList.length);
+    return nodeList;
+}
+
+function filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList) {
+    let chosenSubjectText = element.value.toString();
+    let itemsArray = [];
+    let nodeList = document.querySelectorAll(".list-group-item");
+    for(let i = 0; i < baseNodeList.length; i++) {
+        let currentNode = baseNodeList[i];
+        let subjectOfCurrentNode = currentNode.querySelector("span").textContent.split("\n")[2].trim();
+        if(datePicker.value !== "") {
+            let stringCurrentNodeDate = currentNode.querySelector("h4").textContent.split("\n")[2].trim();
+            let currentNodeDate = new Date();
+            currentNodeDate.setTime(Date.parse(parseToParsableDate(stringCurrentNodeDate)));
+            let chosenDateString = datePicker.value.toString();
+            let chosenDate = new Date();
+            chosenDate.setTime(Date.parse(chosenDateString));
+            currentNodeDate = currentNodeDate.toLocaleDateString();
+            chosenDate = chosenDate.toLocaleDateString();
+            if(!(chosenDate > currentNodeDate || chosenDate < currentNodeDate)) {
+                if(chosenSubjectText === "Предмет не выбран") {
+                    itemsArray.push(currentNode);
+                } else {
+                    if(subjectOfCurrentNode === chosenSubjectText) {
+                        itemsArray.push(currentNode);
+                    }
+                }
+            }
+        } else {
+            if(chosenSubjectText === "Предмет не выбран") {
+                itemsArray.push(currentNode);
+            } else {
+                if(subjectOfCurrentNode === chosenSubjectText) {
+                    itemsArray.push(currentNode);
+                }
+            }
+        }
+    }
+    nodeList.forEach(function(node) {
+        parent.removeChild(node);
+    })
     itemsArray.sort(function (nodeA, nodeB) {
-        let textA = nodeA.querySelector("span").textContent.split("\n")[2];
-        let textB = nodeB.querySelector("span").textContent.split("\n")[2];
-        if(textA === "") {
-            return 1;
-        }
-        if(textB === "") {
-            return -1;
-        }
-        if(textA > textB) return 1;
-        if(textA < textB) return -1;
         let stringDateA = nodeA.querySelector("h4").innerText.split("\n")[2].trim();
         let stringDateB = nodeB.querySelector("h4").innerText.split("\n")[2].trim();
         let dateA = new Date();
@@ -106,9 +189,66 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     })
 }
 
+async function lessonVideosMainFunction() {
+    let element = document.createElement("select");
+    element.setAttribute("name", "selectSubject");
+    element.setAttribute("id", "selector");
+    let datePicker = document.createElement("input");
+    datePicker.setAttribute("type", "date");
+    datePicker.setAttribute("id", "datePicker");
+    datePicker.setAttribute("name", "lectureDatePicker");
+    let clearButton = document.createElement("button");
+    clearButton.textContent = "Очистить";
+    clearButton.setAttribute("id", "clearTheFilter");
+    let div = document.querySelector(".pagination");
+    let setOfSubjects = new Set();
+    let baseNodeList = document.querySelectorAll(".list-group-item");
+    let parent = baseNodeList[0].parentNode;
+    let fullNodeList = [];
+    await getFullLNodeList(baseNodeList).then(array => {
+        console.log(array.length);
+        array.forEach(function(node) {
+            fullNodeList.push(node);
+        })
+    });
+    console.log(fullNodeList.length + "   fullNodeList.length");
+    baseNodeList.forEach(function(node) {
+        let subject = node.querySelector("span").textContent.split("\n")[2];
+        setOfSubjects.add(subject);
+    })
+    div.after(element);
+    element.after(datePicker);
+    datePicker.after(clearButton);
+    setOfSubjects.delete("");
+    let disabledOption = document.createElement("option");
+    disabledOption.setAttribute("selected", "selected");
+    disabledOption.textContent = "Предмет не выбран";
+    element.append(disabledOption);
+    setOfSubjects.forEach(function(elem) {
+        let option = document.createElement("option");
+        option.textContent = elem;
+        element.append(option);
+    })
+    element.onchange = function() {
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    datePicker.onchange = function() {
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    clearButton.onclick = function() {
+        element.value = "Предмет не выбран";
+        datePicker.value = "";
+        filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
+    }
+    return 0;
+}
+
+if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+    lessonVideosMainFunction().then(res => console.log(res + "   res"));
+}
+
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
     getGroupMembersDOM();
-
     let tutorList = document.querySelectorAll("span.text-nowrap");
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
@@ -132,6 +272,4 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
                 })
             })
     }
-
-
 }
