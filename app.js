@@ -43,9 +43,10 @@ async function getGroupMembersDOM() {
                                 groupMemberLink.after(contact);
                             })
                         }
+                        //trd.append(currentMember);
                         //currentMember.append(listOfContacts);
-                        trd.append(currentMember);
                     })
+                trd.append(currentMember);
                 //tr.textContent = memberList[i].textContent;
                 table.append(tabled);
             }
