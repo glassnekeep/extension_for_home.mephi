@@ -1,19 +1,53 @@
-function getGroupMembersDOM() {
+async function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
     groupTimetableUrl = groupTimetableUrl.replace("schedule", "");
     fetch(groupTimetableUrl)
         .then(res => res.text())
-        .then((responseText) => {
+        .then(/*async*/ (responseText) => {
             let doc = new DOMParser().parseFromString(responseText, 'text/html');
             let memberList = doc.querySelectorAll(".list-group-item");
             let tableDiv = document.createElement("div");
-            let table = document.createElement("table");
+            let tableTable = document.createElement("table");
+            tableTable.setAttribute("class", "main-table");
+            let table = document.createElement("tr");
+            tableTable.append(table);
+            let tabled = document.createElement("td");
+            let td = document.createElement("table");
+            tabled.append(td);
             for(let i = 0; i < memberList.length; i++) {
+                if(i !== 0 && i % 10 === 0) {
+                    tabled = document.createElement("td");
+                    td = document.createElement("table");
+                    tabled.append(td);
+                    console.log("if worked");
+                }
+                let currentMember = memberList[i];
+                currentMember.setAttribute("class", "group-member")
+                let currentGroupMemberPage = currentMember.querySelector("a").getAttribute("href");
                 let tr = document.createElement("tr");
+                let trd = document.createElement("td");
+                tr.append(trd);
                 tr.setAttribute("class", "table-raw-group-member");
-                tr.textContent = memberList[i].textContent;
-                table.append(tr);
+                td.append(tr);
+                /*await*/ fetch(currentGroupMemberPage)
+                    .then(result => result.text())
+                    .then((respondText) => {
+                        let docParsed = new DOMParser().parseFromString(respondText, 'text/html');
+                        let listOfContactsRElement = docParsed.querySelector(".list-inline");
+                        if(listOfContactsRElement != null) {
+                            let listOfContacts = listOfContactsRElement.querySelectorAll("a");
+                            listOfContacts.forEach(function(contact) {
+                                contact.setAttribute("class", "group-member-contact");
+                                let groupMemberLink = currentMember.querySelector("a");
+                                groupMemberLink.after(contact);
+                            })
+                        }
+                        //currentMember.append(listOfContacts);
+                        trd.append(currentMember);
+                    })
+                //tr.textContent = memberList[i].textContent;
+                table.append(tabled);
             }
             let mainContainer = document.querySelector(".row");
             tableDiv.append(table);
@@ -248,7 +282,7 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
 }
 
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
-    getGroupMembersDOM();
+    getGroupMembersDOM().then(res => console.log(res));
     let tutorList = document.querySelectorAll("span.text-nowrap");
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
