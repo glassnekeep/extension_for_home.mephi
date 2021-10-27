@@ -1,7 +1,9 @@
 table {
-    border: 1px solid gray;
     position: inherit;
     background: chocolate;
+}
+.main-table {
+    border: 1px solid gray;
 }
 tr {
     border: 1px solid gray;
@@ -58,4 +60,20 @@ tr {
 #selector {
     position: relative;
     padding: 10px;
+}
+
+.group-member {
+    float: left;
+    margin-right: 10px;
+}
+.table-raw-group-member {
+    min-width: 180px;
+    min-height: 80px;
+}
+.group-member {
+    padding: 10px;
+}
+
+.group-member-contact {
+    margin-left: 5px;
 }
