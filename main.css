@@ -1,0 +1,79 @@
+table {
+    position: inherit;
+    background: yellow;
+}
+.main-table {
+    border: 1px solid gray;
+}
+tr {
+    border: 1px solid gray;
+    padding: 10px;
+    min-width: 5000px;
+    background: white;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    transition: 1s;
+}
+
+.dropdown:hover {
+    min-height: 60px;
+    transition: 1s;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    position: absolute;
+    text-decoration: none;
+    display: block;
+    min-width: 120px;
+}
+
+.dropdown-content a:hover {
+    background-color: #5fc663;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    position: absolute;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+#write-letter-to-tutor {
+    font-size: 16px;
+    color: #f1f1f1;
+}
+
+#selector {
+    position: relative;
+    padding: 10px;
+}
+
+.group-member {
+    float: left;
+    margin-right: 10px;
+}
+.table-raw-group-member {
+    min-width: 180px;
+    min-height: 80px;
+}
+.group-member {
+    padding: 10px;
+}
+
+.group-member-contact {
+    margin-left: 5px;
+}
