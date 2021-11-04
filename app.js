@@ -1,14 +1,36 @@
-let writeLetterButtonFunctionalityEnabledFlag = true;
-let lectureFilterFunctionalityFlag = true;
-let groupMatesTableFunctionalityFlag = true;
-
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch(request.todo) {
+        case "update write email to tutor functionality status":
+            let dropdownContents = document.querySelectorAll(".dropdown-content");
+            let writeButtons = document.querySelectorAll(".write-letter-to-tutor");
+            if(dropdownContents != null) {
+                let writeLetterButtonFunctionalityEnabledFlag = request.functionalityStatus;
+                if(!writeLetterButtonFunctionalityEnabledFlag) {
+                    dropdownContents.forEach(function (element) {
+                        if(!element.hasAttribute("hidden")) {element.setAttribute("hidden", "")}
+                    })
+                    writeButtons.forEach(function (element) {
+                        if(!element.hasAttribute("hidden")) {element.setAttribute("hidden", "")}
+                    })
+                } else {
+                    dropdownContents.forEach(function (element) {
+                        if(element.hasAttribute("hidden")) {element.removeAttribute("hidden")}
+                    })
+                    writeButtons.forEach(function (element) {
+                        if(element.hasAttribute("hidden")) {element.removeAttribute("hidden")}
+                    })
+                }
+            }
+            break;
         case "update lecture functionality status":
+            let selector = document.querySelector("#selector");
+            let datePicker = document.querySelector("#datePicker");
+            let clearTheFilter = document.querySelector("#clearTheFilter");
             console.log("Something was pressed");
             console.log(request.functionalityStatus);
-            lectureFilterFunctionalityFlag = request.functionalityStatus;
+            let lectureFilterFunctionalityFlag = request.functionalityStatus;
             if(!lectureFilterFunctionalityFlag) {
+                clearTheFilter.click();
                 selector.setAttribute("hidden", "");
                 datePicker.setAttribute("hidden", "");
                 clearTheFilter.setAttribute("hidden", "");
@@ -17,6 +39,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                 if(datePicker.hasAttribute("hidden")) {datePicker.removeAttribute("hidden")}
                 if(clearTheFilter.hasAttribute("hidden")) {clearTheFilter.removeAttribute("hidden")}
             }
+            break;
+        case "update group mates table functionality status":
+            let mainTable = document.querySelector("#main-table");
+            let groupMatesTableFunctionalityFlag = request.functionalityStatus;
+            if(!groupMatesTableFunctionalityFlag) {
+                mainTable.setAttribute("hidden", "");
+            } else {
+                if(mainTable.hasAttribute("hidden")) {mainTable.removeAttribute("hidden")}
+            }
+            break;
     }
 })
 
@@ -31,7 +63,7 @@ async function getGroupMembersDOM() {
             let memberList = doc.querySelectorAll(".list-group-item");
             let tableDiv = document.createElement("div");
             let tableTable = document.createElement("table");
-            tableTable.setAttribute("class", "main-table");
+            tableDiv.setAttribute("id", "main-table");
             let table = document.createElement("tr");
             tableTable.append(table);
             let tabled = document.createElement("td");
@@ -303,7 +335,7 @@ async function lessonVideosMainFunction() {
 if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     lessonVideosMainFunction().then(res => {
         console.log(res + "   res")
-        let selector = document.querySelector("#selector");
+        /*let selector = document.querySelector("#selector");
         let datePicker = document.querySelector("#datePicker");
         let clearTheFilter = document.querySelector("#clearTheFilter");
         if(!lectureFilterFunctionalityFlag) {
@@ -314,7 +346,7 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
             if(selector.hasAttribute("hidden")) {selector.removeAttribute("hidden")}
             if(datePicker.hasAttribute("hidden")) {datePicker.removeAttribute("hidden")}
             if(clearTheFilter.hasAttribute("hidden")) {clearTheFilter.removeAttribute("hidden")}
-        }
+        }*/
     });
 }
 
