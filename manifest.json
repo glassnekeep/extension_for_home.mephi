@@ -1,13 +1,18 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Functionality extension for home.mephi.ru",
   "version": "1.1",
   "description": "Добавляет функционал на портал home.mephi",
   "icons": {
     "128": "200.png"
   },
-  "action": {
+  "permissions": ["activeTab", "tabs"],
+  "browser_action": {
     "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["app.js"],
+    "persistent": true
   },
   "content_scripts": [
     {

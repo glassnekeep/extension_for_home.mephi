@@ -1,3 +1,25 @@
+let writeLetterButtonFunctionalityEnabledFlag = true;
+let lectureFilterFunctionalityFlag = true;
+let groupMatesTableFunctionalityFlag = true;
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    switch(request.todo) {
+        case "update lecture functionality status":
+            console.log("Something was pressed");
+            console.log(request.functionalityStatus);
+            lectureFilterFunctionalityFlag = request.functionalityStatus;
+            if(!lectureFilterFunctionalityFlag) {
+                selector.setAttribute("hidden", "");
+                datePicker.setAttribute("hidden", "");
+                clearTheFilter.setAttribute("hidden", "");
+            } else {
+                if(selector.hasAttribute("hidden")) {selector.removeAttribute("hidden")}
+                if(datePicker.hasAttribute("hidden")) {datePicker.removeAttribute("hidden")}
+                if(clearTheFilter.hasAttribute("hidden")) {clearTheFilter.removeAttribute("hidden")}
+            }
+    }
+})
+
 async function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
@@ -279,7 +301,21 @@ async function lessonVideosMainFunction() {
 }
 
 if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
-    lessonVideosMainFunction().then(res => console.log(res + "   res"));
+    lessonVideosMainFunction().then(res => {
+        console.log(res + "   res")
+        let selector = document.querySelector("#selector");
+        let datePicker = document.querySelector("#datePicker");
+        let clearTheFilter = document.querySelector("#clearTheFilter");
+        if(!lectureFilterFunctionalityFlag) {
+            selector.setAttribute("hidden", "");
+            datePicker.setAttribute("hidden", "");
+            clearTheFilter.setAttribute("hidden", "");
+        } else {
+            if(selector.hasAttribute("hidden")) {selector.removeAttribute("hidden")}
+            if(datePicker.hasAttribute("hidden")) {datePicker.removeAttribute("hidden")}
+            if(clearTheFilter.hasAttribute("hidden")) {clearTheFilter.removeAttribute("hidden")}
+        }
+    });
 }
 
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
@@ -298,6 +334,18 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
                     .then((respondText) => {
                     const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
                     writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
+                    /*let dropdown = document.createElement("div");
+                    dropdown.setAttribute("class", "dropdown");
+                    dropdown.append(tutorList[i].outerHTML);
+                    let dropdownContent = document.createElement("div");
+                    dropdownContent.setAttribute("class", "dropdown-content");
+                    let writeButton = document.createElement("a");
+                    writeButton.setAttribute("class", "btn btn-primary-wrap");
+                    writeButton.setAttribute("href", writeLetterUrl);
+                    let fa = document.createElement("i");
+                    fa.setAttribute("class", "fa fa-envelope");
+                    writeButton.append(fa);
+                    */
                         tutorList[i].outerHTML = "<div class=\"dropdown\">\n" + tutorList[i].outerHTML +
                             "        <div class=\"dropdown-content\">\n" +
                             "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
