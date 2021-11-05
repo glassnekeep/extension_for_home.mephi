@@ -1,4 +1,29 @@
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+let writeLetterButtonFunctionalityEnabledFlag = true;
+let lectureFilterFunctionalityFlag = true;
+let groupMatesTableFunctionalityFlag = true;
+
+var port1 = chrome.extension.connect({
+    name: "Connection between content script and background script"
+});
+port1.postMessage({name: "Send flags"});
+port1.onMessage.addListener(function(message) {
+    console.log("message received" + message);
+    let name = message.name;
+    switch (name) {
+        case "flags":
+            let letter = message.flags.letter;
+            let lecture = message.flags.lecture;
+            let groupTable = message.flags.groupTable;
+            console.log("1111    " + letter + " " + lecture + " " + groupTable);
+            writeLetterButtonFunctionalityEnabledFlag = letter;
+            lectureFilterFunctionalityFlag = lecture;
+            groupMatesTableFunctionalityFlag = groupTable;
+            console.log("3 statuses    " + writeLetterButtonFunctionalityEnabledFlag + " " + lectureFilterFunctionalityFlag + " " + groupMatesTableFunctionalityFlag);
+            break;
+    }
+})
+
+/*chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     switch(request.todo) {
         case "update write email to tutor functionality status":
             let dropdownContents = document.querySelectorAll(".dropdown-content");
@@ -50,7 +75,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             }
             break;
     }
-})
+})*/
 
 async function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
@@ -332,6 +357,44 @@ async function lessonVideosMainFunction() {
     return 0;
 }
 
+function createSendLetterToTutorElements() {
+    let tutorList = document.querySelectorAll("span.text-nowrap");
+    for(let i = 0; i < tutorList.length; i++) {
+        let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
+        let writeLetterUrl = "";
+        fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
+            .then(res => res.text())
+            .then((responseText) => {
+                const doc = new DOMParser().parseFromString(responseText, 'text/html');
+                const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
+                fetch(tutorPersonalPageUrl)
+                    .then(result => result.text())
+                    .then((respondText) => {
+                        const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
+                        writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
+                        /*let dropdown = document.createElement("div");
+                        dropdown.setAttribute("class", "dropdown");
+                        dropdown.append(tutorList[i].outerHTML);
+                        let dropdownContent = document.createElement("div");
+                        dropdownContent.setAttribute("class", "dropdown-content");
+                        let writeButton = document.createElement("a");
+                        writeButton.setAttribute("class", "btn btn-primary-wrap");
+                        writeButton.setAttribute("href", writeLetterUrl);
+                        let fa = document.createElement("i");
+                        fa.setAttribute("class", "fa fa-envelope");
+                        writeButton.append(fa);
+                        */
+                        tutorList[i].outerHTML = "<div class=\"dropdown\">\n" + tutorList[i].outerHTML +
+                            "        <div class=\"dropdown-content\">\n" +
+                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
+                            "                Написать" +
+                            "            </a>" +
+                            "        </div>"
+                    })
+            })
+    }
+}
+
 if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
     lessonVideosMainFunction().then(res => {
         console.log(res + "   res")
@@ -352,39 +415,5 @@ if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
 
 if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
     getGroupMembersDOM().then(res => console.log(res));
-    let tutorList = document.querySelectorAll("span.text-nowrap");
-    for(let i = 0; i < tutorList.length; i++) {
-        let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-        let writeLetterUrl = "";
-        fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
-            .then(res => res.text())
-            .then((responseText) => {
-                const doc = new DOMParser().parseFromString(responseText, 'text/html');
-                const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                fetch(tutorPersonalPageUrl)
-                    .then(result => result.text())
-                    .then((respondText) => {
-                    const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                    writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
-                    /*let dropdown = document.createElement("div");
-                    dropdown.setAttribute("class", "dropdown");
-                    dropdown.append(tutorList[i].outerHTML);
-                    let dropdownContent = document.createElement("div");
-                    dropdownContent.setAttribute("class", "dropdown-content");
-                    let writeButton = document.createElement("a");
-                    writeButton.setAttribute("class", "btn btn-primary-wrap");
-                    writeButton.setAttribute("href", writeLetterUrl);
-                    let fa = document.createElement("i");
-                    fa.setAttribute("class", "fa fa-envelope");
-                    writeButton.append(fa);
-                    */
-                        tutorList[i].outerHTML = "<div class=\"dropdown\">\n" + tutorList[i].outerHTML +
-                            "        <div class=\"dropdown-content\">\n" +
-                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
-                            "                Написать" +
-                            "            </a>" +
-                            "        </div>"
-                })
-            })
-    }
+    createSendLetterToTutorElements()
 }
