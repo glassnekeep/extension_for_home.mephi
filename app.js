@@ -333,8 +333,13 @@ createSendLetterToTutorElements().then((res) => {
 function initFunctionality() {
     if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
         if(lectureFilterFunctionalityFlag) {
+            let selector = document.getElementById("selector");
+            let datePicker = document.getElementById("datePicker");
+            let clearTheFilter = document.getElementById("clearTheFilter");
             console.log("Lecture filter status is true");
-            lessonVideosMainFunction().then(res => {console.log(res + "   res")});
+            if(selector == null && datePicker == null && clearTheFilter == null) {
+                lessonVideosMainFunction().then(res => {console.log(res + "   res")});
+            }
         } else {
             try {
                 document.getElementById("selector").remove();
