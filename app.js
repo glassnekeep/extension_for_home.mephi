@@ -1,3 +1,7 @@
+let writeLetterButtonFunctionalityEnabledFlag;
+let lectureFilterFunctionalityFlag;
+let groupMatesTableFunctionalityFlag;
+
 async function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
@@ -9,7 +13,7 @@ async function getGroupMembersDOM() {
             let memberList = doc.querySelectorAll(".list-group-item");
             let tableDiv = document.createElement("div");
             let tableTable = document.createElement("table");
-            tableTable.setAttribute("class", "main-table");
+            tableDiv.setAttribute("id", "main-table");
             let table = document.createElement("tr");
             tableTable.append(table);
             let tabled = document.createElement("td");
@@ -278,17 +282,12 @@ async function lessonVideosMainFunction() {
     return 0;
 }
 
-if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
-    lessonVideosMainFunction().then(res => console.log(res + "   res"));
-}
-
-if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
-    getGroupMembersDOM().then(res => console.log(res));
+async function createSendLetterToTutorElements() {
     let tutorList = document.querySelectorAll("span.text-nowrap");
+    let tutorHrefList = new Array(tutorList.length);
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-        let writeLetterUrl = "";
-        fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
+        await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
             .then(res => res.text())
             .then((responseText) => {
                 const doc = new DOMParser().parseFromString(responseText, 'text/html');
@@ -296,15 +295,112 @@ if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
                 fetch(tutorPersonalPageUrl)
                     .then(result => result.text())
                     .then((respondText) => {
-                    const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                    writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
-                        tutorList[i].outerHTML = "<div class=\"dropdown\">\n" + tutorList[i].outerHTML +
+                        const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
+                        /*tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
                             "        <div class=\"dropdown-content\">\n" +
                             "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
                             "                Написать" +
                             "            </a>" +
-                            "        </div>"
-                })
+                            "        </div>"*/
+                        console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
+                        tutorHrefList[i] = docPersonal.querySelector(".btn-primary").getAttribute("href");
+                    })
             })
     }
+    console.log("tutorHrefList = " + tutorHrefList);
+    console.log("tutorHrefList.indexOf " + tutorHrefList.indexOf(""));
+    return tutorHrefList;
 }
+
+/*if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+    lessonVideosMainFunction().then(res => {
+        console.log(res + "   res")
+    });
+}*/
+
+/*if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
+    getGroupMembersDOM().then(res => console.log(res));
+    createSendLetterToTutorElements()
+}*/
+
+let tutorUrlList;
+createSendLetterToTutorElements().then((res) => {
+    tutorUrlList = res;
+    chrome.runtime.sendMessage({message: "send flags"}, function(response) {
+        console.log("sent flag request, response = " + response);
+    });
+})
+
+function initFunctionality() {
+    if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+        if(lectureFilterFunctionalityFlag) {
+            let selector = document.getElementById("selector");
+            let datePicker = document.getElementById("datePicker");
+            let clearTheFilter = document.getElementById("clearTheFilter");
+            console.log("Lecture filter status is true");
+            if(selector == null && datePicker == null && clearTheFilter == null) {
+                lessonVideosMainFunction().then(res => {console.log(res + "   res")});
+            }
+        } else {
+            try {
+                document.getElementById("selector").remove();
+                document.getElementById("datePicker").remove();
+                document.getElementById("clearTheFilter").remove();
+            } catch (e) {
+                console.log("error = " + e);
+            }
+        }
+    }
+    if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
+        let letterArray = document.querySelectorAll(".dropdown-letter");
+        console.log("letterArray.length = " + letterArray.length);
+        let mainTable = document.querySelector("#main-table");
+        if(writeLetterButtonFunctionalityEnabledFlag) {
+            if(letterArray.length === 0) {
+                console.log("letterArray.length = " + letterArray.length);
+                let tutorList = document.querySelectorAll("span.text-nowrap");
+                for(let i = 0; i < tutorList.length; i++) {
+                    tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
+                        "        <div class=\"dropdown-content\">\n" +
+                        "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + tutorUrlList[i] + "><i class=\"fa fa-envelope\"></i>\n" +
+                        "                Написать" +
+                        "            </a>" +
+                        "        </div>"
+                }
+            } else {
+                console.log("letterArray.length = " + letterArray.length);
+            }
+        } else {
+            try {
+                letterArray.forEach(function(node) {
+                    node.outerHTML = node.firstElementChild.outerHTML;
+                })
+            } catch (e) {
+                console.log("error = " + e);
+            }
+        }
+        if(groupMatesTableFunctionalityFlag) {
+            if(mainTable == null) {
+                getGroupMembersDOM().then(res => console.log(res + "    res"));
+            }
+            console.log("groupTable status is true");
+        } else {
+            try {
+                document.getElementById("main-table").remove();
+                console.log("groupTable status is false");
+            } catch (e) {
+                console.log("error = " + e);
+            }
+        }
+    }
+}
+
+chrome.runtime.onMessage.addListener(function(request) {
+    //console.log("received message from background script, letter = " + request.flags.letter + " lecture =  " + request.flags.lecture + " groupTable = " + request.flags.groupTable);
+    if (request.name === "flags") {
+        writeLetterButtonFunctionalityEnabledFlag = request.flags.letter;
+        lectureFilterFunctionalityFlag = request.flags.lecture;
+        groupMatesTableFunctionalityFlag = request.flags.groupTable;
+    }
+    initFunctionality();
+})

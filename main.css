@@ -2,7 +2,7 @@ table {
     position: inherit;
     background: chocolate;
 }
-.main-table {
+#main-table {
     border: 1px solid gray;
 }
 tr {
@@ -12,13 +12,13 @@ tr {
     background: white;
 }
 
-.dropdown {
+.dropdown-letter {
     position: relative;
     display: inline-block;
     transition: 1s;
 }
 
-.dropdown:hover {
+.dropdown-letter:hover {
     min-height: 60px;
     transition: 1s;
 }
@@ -36,20 +36,20 @@ tr {
     position: absolute;
     text-decoration: none;
     display: block;
-    min-width: 120px;
+    min-width: 130px;
 }
 
 .dropdown-content a:hover {
     background-color: #5fc663;
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown-letter:hover .dropdown-content {
     display: block;
     position: absolute;
 }
 
-.dropdown:hover .dropbtn {
-    background-color: #3e8e41;
+.dropdown-letter:hover .dropbtn {
+    background-color: #eef3ef;
 }
 
 #write-letter-to-tutor {
