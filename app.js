@@ -287,8 +287,7 @@ async function createSendLetterToTutorElements() {
     let tutorHrefList = new Array(tutorList.length);
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-        let writeLetterUrl = "";
-        fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
+        await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
             .then(res => res.text())
             .then((responseText) => {
                 const doc = new DOMParser().parseFromString(responseText, 'text/html');
@@ -297,17 +296,19 @@ async function createSendLetterToTutorElements() {
                     .then(result => result.text())
                     .then((respondText) => {
                         const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                        writeLetterUrl = docPersonal.querySelector(".btn-primary").getAttribute("href");
                         /*tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
                             "        <div class=\"dropdown-content\">\n" +
                             "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
                             "                Написать" +
                             "            </a>" +
                             "        </div>"*/
-                        tutorHrefList[i] = writeLetterUrl;
+                        console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
+                        tutorHrefList[i] = docPersonal.querySelector(".btn-primary").getAttribute("href");
                     })
             })
     }
+    console.log("tutorHrefList = " + tutorHrefList);
+    console.log("tutorHrefList.indexOf " + tutorHrefList.indexOf(""));
     return tutorHrefList;
 }
 
