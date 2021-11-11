@@ -285,14 +285,15 @@ async function lessonVideosMainFunction() {
 async function createSendLetterToTutorElements() {
     let tutorList = document.querySelectorAll("span.text-nowrap");
     let tutorHrefList = new Array(tutorList.length);
+    let k = 0;
     for(let i = 0; i < tutorList.length; i++) {
         let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
         await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
             .then(res => res.text())
-            .then((responseText) => {
+            .then(async function (responseText){
                 const doc = new DOMParser().parseFromString(responseText, 'text/html');
                 const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                fetch(tutorPersonalPageUrl)
+                await fetch(tutorPersonalPageUrl)
                     .then(result => result.text())
                     .then((respondText) => {
                         const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
@@ -304,11 +305,24 @@ async function createSendLetterToTutorElements() {
                             "        </div>"*/
                         console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
                         tutorHrefList[i] = docPersonal.querySelector(".btn-primary").getAttribute("href");
+                        k++;
                     })
             })
     }
     console.log("tutorHrefList = " + tutorHrefList);
     console.log("tutorHrefList.indexOf " + tutorHrefList.indexOf(""));
+
+    /*let interval = await setInterval(() => {
+        if(k === tutorList.length) {
+            console.log("everything is done, k = " + k);
+            clearInterval(interval);
+            return tutorHrefList;
+        } else {
+            console.log("k = " + k);
+        }
+    }, 1000)*/
+    console.log("interval is closed");
+    console.log("return tutorHrefList");
     return tutorHrefList;
 }
 
