@@ -1,6 +1,6 @@
-var writeLetterButtonFunctionalityEnabledFlag = true;
-var lectureFilterFunctionalityFlag = true;
-var groupMatesTableFunctionalityFlag = true;
+var writeLetterButtonFunctionalityEnabledFlag;
+var lectureFilterFunctionalityFlag;
+var groupMatesTableFunctionalityFlag;
 var flagObject = {
     letter: writeLetterButtonFunctionalityEnabledFlag,
     lecture: lectureFilterFunctionalityFlag,
@@ -15,6 +15,9 @@ function updateObjectFromSyncStorage() {
         flagObject.groupTable = result.flags.groupTable;
     })
 }
+
+updateObjectFromSyncStorage()
+
 chrome.storage.sync.get(['flags'], function(result) {
     console.log(result.flags);
     /*if(result.flags == null) {
