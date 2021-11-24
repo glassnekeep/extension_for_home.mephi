@@ -58,8 +58,42 @@ tr {
 }
 
 #selector {
-    position: relative;
-    padding: 10px;
+    position: absolute;
+    left: 500px;
+    top: 325px;
+    padding: 9px;
+    border-color: rgb(221, 221, 221);
+}
+
+#datePicker {
+    position: absolute;
+    padding-bottom: 1px;
+    padding-left: 6px;
+    left: 798px;
+    top: 325px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(221, 221, 221);
+    border-image: initial;
+}
+
+#clearTheFilter {
+    position: absolute;
+    left: 995px;
+    top: 331px;
+    background-color: rgb(180, 112, 173);
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(180, 112, 173);
+    border-image: initial;
+    transition: all 0.5s ease 0s;
+}
+
+#clearTheFilter:hover{
+    transition: 0.5s;
+    background-color: rgb(189, 88, 182);
 }
 
 .group-member {
