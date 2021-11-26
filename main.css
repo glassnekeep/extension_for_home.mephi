@@ -58,19 +58,20 @@ tr {
 }
 
 #selector {
-    position: absolute;
-    left: 500px;
-    top: 325px;
+    position: relative;
+    bottom: 39px;
+    left: 2%;
+
     padding: 9px;
     border-color: rgb(221, 221, 221);
 }
 
 #datePicker {
-    position: absolute;
+    position: relative;
     padding-bottom: 1px;
     padding-left: 6px;
-    left: 798px;
-    top: 325px;
+    bottom: 40px;
+    left: 2%;
     border-width: 1px;
     border-style: solid;
     border-color: rgb(221, 221, 221);
@@ -78,9 +79,9 @@ tr {
 }
 
 #clearTheFilter {
-    position: absolute;
-    left: 995px;
-    top: 331px;
+    position: relative;
+    bottom: 40px;
+    left: 3%;
     background-color: rgb(180, 112, 173);
     color: rgb(255, 255, 255);
     cursor: pointer;
