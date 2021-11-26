@@ -327,6 +327,9 @@ async function createSendLetterToTutorElements() {
 }
 
 async function getTutorUrlMap() {
+    chrome.runtime.sendMessage({message: "loading data started"}, function(response) {
+        console.log("sent loading data request, response = " + response);
+    });
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
     let tutorHrefMap = {};
@@ -355,6 +358,9 @@ async function getTutorUrlMap() {
             }
         })
     console.log(tutorHrefMap);
+    chrome.runtime.sendMessage({message: "loading data ended"}, function(response) {
+        console.log("sent loading data request, response = " + response);
+    });
     return tutorHrefMap;
 }
 
@@ -420,12 +426,25 @@ function initFunctionality() {
                 for(let i = 0; i < tutorList.length; i++) {
                     let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
                     console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
-                    tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
-                        "        <div class=\"dropdown-content\">\n" +
-                        "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
-                        "                Написать" +
-                        "            </a>" +
-                        "        </div>"
+                    try {
+                        tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
+                            "        <div class=\"dropdown-content\">\n" +
+                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
+                            "                Написать" +
+                            "            </a>" +
+                            "        </div>"
+                    } catch (e) {
+                        getTutorUrlMap().then((res) => {
+                            Object.assign(hrefMap, res)
+                            console.log("hrefMap == " + hrefMap);
+                            let links = {};
+                            Object.assign(links,  res)
+                            chrome.storage.local.set({"links": links}, function () {
+                                console.log("links are set");
+                            });
+                        })
+                        initFunctionality()
+                    }
                 }
             } else {
                 console.log("letterArray.length = " + letterArray.length);
@@ -480,7 +499,6 @@ function listener() {
         }
     }, 4000)
 }
-
 
 function initContentScriptFunctionality() {
     getTutorLetterUrl();

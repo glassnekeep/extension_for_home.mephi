@@ -7,6 +7,8 @@ var flagObject = {
     groupTable: groupMatesTableFunctionalityFlag
 }
 
+let contentStatus = true
+
 function updateObjectFromSyncStorage() {
     chrome.storage.local.get(['flags'], function(result) {
         console.log(result.flags);
@@ -18,14 +20,23 @@ function updateObjectFromSyncStorage() {
 
 updateObjectFromSyncStorage()
 
-chrome.storage.local.get(['flags'], function(result) {
+
+function loadingContent(status) {
+    if (status) {
+        port.postMessage({name: "show switch"});
+    } else {
+        port.postMessage({name: "show loading"});
+    }
+}
+
+/*chrome.storage.local.get(['flags'], function(result) {
     console.log(result.flags);
     /*if(result.flags == null) {
         chrome.storage.local.set({flags: flagObject}, function () {
             console.log("There was no data in chrome storage, so was set letter = " + flagObject.letter + " lecture = " +  flagObject.lecture + " groupTable = " + flagObject.groupTable);
         });
     }*/
-})
+/*})*/
 
 chrome.storage.onChanged.addListener(function (changes) {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -72,13 +83,23 @@ chrome.extension.onConnect.addListener(function(port) {
 
 chrome.runtime.onMessage.addListener(
     function(request) {
-        if (request.message === "send flags") {
-            updateObjectFromSyncStorage();
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {name: "flags", flags: flagObject}, function(response) {
-                    console.log("sending response to content script, response = " + response);
+        switch(request.message) {
+            case "send flags":
+                updateObjectFromSyncStorage();
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {name: "flags", flags: flagObject}, function(response) {
+                        console.log("sending response to content script, response = " + response);
+                    });
                 });
-            });
+                break;
+            case "loading data started":
+                loadingContent(true);
+                console.log("message about data refreshing received");
+                break;
+            case "loading data ended":
+                loadingContent(false);
+                console.log("message about data refreshing being finished received");
+                break;
         }
     }
 );
