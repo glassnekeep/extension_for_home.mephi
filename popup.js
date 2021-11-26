@@ -2,44 +2,9 @@ let lectureFilterFunctionalitySwitcher = document.querySelector("#lecture-filter
 let groupMatesTableFunctionalitySwitcher = document.querySelector("#group-mates-table-functionality-enabled");
 let sendEmailDirectlyToTutorFunctionalitySwitcher = document.querySelector("#send-email-directly-to-tutor-functionality-enabled");
 
-let switchElement = "<div class=\"mainSwitchDiv\">\n" +
-    "    <div class=\"switchDiv\">\n" +
-    "        <label class=\"switch\">\n" +
-    "            <input type=\"checkbox\" id=\"send-email-directly-to-tutor-functionality-enabled\">\n" +
-    "            <span class=\"slider round\"></span>\n" +
-    "        </label>\n" +
-    "        <p class=\"nameOfFunction\">\n" +
-    "            Сообщение преподавателю\n" +
-    "        </p>\n" +
-    "    </div>\n" +
-    "    <div class=\"switchDiv\">\n" +
-    "        <label class=\"switch\">\n" +
-    "            <input type=\"checkbox\" id=\"lecture-filter-functionality-enabled\" >\n" +
-    "            <span class=\"slider round\"></span>\n" +
-    "        </label>\n" +
-    "        <p class=\"nameOfFunction\">\n" +
-    "            Фильтр лекций\n" +
-    "        </p>\n" +
-    "    </div>\n" +
-    "    <div class=\"switchDiv\">\n" +
-    "        <label class=\"switch\">\n" +
-    "            <input type=\"checkbox\" id=\"group-mates-table-functionality-enabled\" >\n" +
-    "            <span class=\"slider round\"></span>\n" +
-    "        </label>\n" +
-    "        <p class=\"nameOfFunction\">\n" +
-    "            Таблица одногруппников\n" +
-    "        </p>\n" +
-    "    </div>\n" +
-    "</div>"
-
-let loadingElement = "<div  id=\"loadingMessage\" style=\"margin: auto; font-size: 30px\">\n" +
-    "    Загрузка данных...\n" +
-    "</div>"
-
 var port = chrome.extension.connect({
     name: "Sample Communication"
 });
-
 port.postMessage({name: "Send flags"});
 port.onMessage.addListener(function(message) {
     console.log("message received " + message);
@@ -65,27 +30,6 @@ port.onMessage.addListener(function(message) {
             } else {
                 if(groupMatesTableFunctionalitySwitcher.hasAttribute("checked")) {groupMatesTableFunctionalitySwitcher.removeAttribute("checked")}
             }
-            break;
-        case "show loading":
-            let switchDiv = document.querySelector(".mainSwitchDiv");
-            if (switchDiv) {
-                switchDiv.remove();
-            }
-            let loading1 = document.querySelector("#loadingMessage");
-            if (!loading1) {
-                document.body.innerHTML += loadingElement;
-            }
-            break;
-        case "show switch":
-            let loading = document.querySelector("#loadingMessage");
-            if (loading) {
-                loading.remove();
-            }
-            let switch1 = document.querySelector(".mainSwitchDiv");
-            if (!switch1) {
-                document.body.innerHTML += switchElement;
-            }
-            break;
     }
 });
 

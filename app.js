@@ -54,7 +54,7 @@ async function getGroupMembersDOM() {
                 //tr.textContent = memberList[i].textContent;
                 table.append(tabled);
             }
-            let mainContainer = document.querySelectorAll(".row")[1];
+            let mainContainer = document.querySelector(".row");
             tableDiv.append(table);
             mainContainer.append(tableDiv);
         })
@@ -326,74 +326,24 @@ async function createSendLetterToTutorElements() {
     return tutorHrefList;
 }
 
-async function getTutorUrlMap() {
-    chrome.runtime.sendMessage({message: "loading data started"}, function(response) {
-        console.log("sent loading data request, response = " + response);
+/*if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+    lessonVideosMainFunction().then(res => {
+        console.log(res + "   res")
     });
-    let buttonGroup = document.querySelector(".btn-group");
-    let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
-    let tutorHrefMap = {};
-    await fetch(groupTimetableUrl)
-        .then(res => res.text())
-        .then(async function(responseText) {
-            let doc = new DOMParser().parseFromString(responseText, 'text/html');
-            let tutorList = doc.querySelectorAll("span.text-nowrap");
-            let k = 0;
-            for (let i = 0; i < tutorList.length; i++) {
-                let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-                await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
-                    .then(res => res.text())
-                    .then(async function (responseText) {
-                        const doc = new DOMParser().parseFromString(responseText, 'text/html');
-                        const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                        await fetch(tutorPersonalPageUrl)
-                            .then(result => result.text())
-                            .then((respondText) => {
-                                const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                                console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
-                                tutorHrefMap[tutorTimetableHref] = docPersonal.querySelector(".btn-primary").getAttribute("href");
-                                k++;
-                            })
-                    })
-            }
-        })
-    console.log(tutorHrefMap);
-    chrome.runtime.sendMessage({message: "loading data ended"}, function(response) {
-        console.log("sent loading data request, response = " + response);
-    });
-    return tutorHrefMap;
-}
+}*/
 
-let hrefMap = {};
-
-function getTutorLetterUrl() {
-    chrome.storage.local.get('links', function(result) {
-        if (Object.keys(result.links).length !== 0) {
-            console.log(Object.keys(result.links).length);
-            Object.assign(hrefMap, result.links);
-            console.log("links are got " + result);
-        } else {
-            console.log("empty storage");
-            getTutorUrlMap().then((res) => {
-                Object.assign(hrefMap, res)
-                console.log("hrefMap == " + hrefMap);
-                let links = {};
-                Object.assign(links,  res)
-                chrome.storage.local.set({"links": links}, function () {
-                    console.log("links are set");
-                });
-            })
-        }
-    })
-}
-
-getTutorLetterUrl()
+/*if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
+    getGroupMembersDOM().then(res => console.log(res));
+    createSendLetterToTutorElements()
+}*/
 
 let tutorUrlList;
-
-chrome.runtime.sendMessage({message: "send flags"}, function(response) {
-    console.log("sent flag request, response = " + response);
-});
+createSendLetterToTutorElements().then((res) => {
+    tutorUrlList = res;
+    chrome.runtime.sendMessage({message: "send flags"}, function(response) {
+        console.log("sent flag request, response = " + response);
+    });
+})
 
 function initFunctionality() {
     if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
@@ -424,27 +374,12 @@ function initFunctionality() {
                 console.log("letterArray.length = " + letterArray.length);
                 let tutorList = document.querySelectorAll("span.text-nowrap");
                 for(let i = 0; i < tutorList.length; i++) {
-                    let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
-                    console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
-                    try {
-                        tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
-                            "        <div class=\"dropdown-content\">\n" +
-                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
-                            "                Написать" +
-                            "            </a>" +
-                            "        </div>"
-                    } catch (e) {
-                        getTutorUrlMap().then((res) => {
-                            Object.assign(hrefMap, res)
-                            console.log("hrefMap == " + hrefMap);
-                            let links = {};
-                            Object.assign(links,  res)
-                            chrome.storage.local.set({"links": links}, function () {
-                                console.log("links are set");
-                            });
-                        })
-                        initFunctionality()
-                    }
+                    tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
+                        "        <div class=\"dropdown-content\">\n" +
+                        "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + tutorUrlList[i] + "><i class=\"fa fa-envelope\"></i>\n" +
+                        "                Написать" +
+                        "            </a>" +
+                        "        </div>"
                 }
             } else {
                 console.log("letterArray.length = " + letterArray.length);
@@ -474,54 +409,8 @@ function initFunctionality() {
     }
 }
 
-function listener() {
-    console.log("listener activated");
-    tutorUrlList = [];
-    console.log(tutorUrlList.length);
-    getTutorLetterUrl()
-    setTimeout(function() {
-        chrome.runtime.sendMessage({message: "send flags"}, function (response) {
-            console.log("sent flag request, response = " + response);
-        });
-        let chevronRight = document.querySelector(".fa-chevron-right");
-        let chevronLeft = document.querySelector(".fa-chevron-left");
-        let sideMenuOptions = document.querySelector(".sidebar-nav").querySelectorAll("a");
-        if(sideMenuOptions.length !== 0) {
-            sideMenuOptions.forEach(function(element) {
-                element.onclick = listener;
-            })
-        }
-        if (chevronLeft != null && chevronRight != null) {
-            let parentRight = chevronRight.parentElement
-            let parentLeft = chevronLeft.parentElement
-            parentRight.onclick = listener;
-            parentLeft.onclick = listener;
-        }
-    }, 4000)
-}
-
-function initContentScriptFunctionality() {
-    getTutorLetterUrl();
-    initFunctionality();
-    let chevronRight = document.querySelector(".fa-chevron-right");
-    let chevronLeft = document.querySelector(".fa-chevron-left");
-    let sideMenuOptions = document.querySelector(".sidebar-nav").querySelectorAll("a");
-    if(sideMenuOptions.length !== 0) {
-        sideMenuOptions.forEach(function(element) {
-            element.onclick = listener;
-        })
-    }
-    if (chevronLeft != null && chevronRight != null) {
-        let parentRight = chevronRight.parentElement;
-        let parentLeft = chevronLeft.parentElement;
-        parentRight.onclick = listener;
-        parentLeft.onclick = listener;
-    }
-}
-
-initContentScriptFunctionality();
-
 chrome.runtime.onMessage.addListener(function(request) {
+    //console.log("received message from background script, letter = " + request.flags.letter + " lecture =  " + request.flags.lecture + " groupTable = " + request.flags.groupTable);
     if (request.name === "flags") {
         writeLetterButtonFunctionalityEnabledFlag = request.flags.letter;
         lectureFilterFunctionalityFlag = request.flags.lecture;
