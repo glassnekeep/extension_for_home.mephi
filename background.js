@@ -1,31 +1,55 @@
-var writeLetterButtonFunctionalityEnabledFlag;
-var lectureFilterFunctionalityFlag;
-var groupMatesTableFunctionalityFlag;
+var writeLetterButtonFunctionalityEnabledFlag = true;
+var lectureFilterFunctionalityFlag = true;
+var groupMatesTableFunctionalityFlag = true;
 var flagObject = {
     letter: writeLetterButtonFunctionalityEnabledFlag,
     lecture: lectureFilterFunctionalityFlag,
     groupTable: groupMatesTableFunctionalityFlag
 }
 
+let loadingStatus = false;
+
 function updateObjectFromSyncStorage() {
-    chrome.storage.local.get(['flags'], function(result) {
-        console.log(result.flags);
-        flagObject.letter = result.flags.letter;
-        flagObject.lecture = result.flags.lecture;
-        flagObject.groupTable = result.flags.groupTable;
-    })
+    try {
+        chrome.storage.local.get(['flags'], function(result) {
+            console.log(result.flags);
+            if (result.flags != null) {
+                flagObject.letter = result.flags.letter;
+                flagObject.lecture = result.flags.lecture;
+                flagObject.groupTable = result.flags.groupTable;
+            } else {
+                chrome.storage.local.set({"flags": flagObject}, function() {
+                    console.log("flags are set");
+                })
+            }
+        })
+    } catch (e) {
+        console.log("error = " + e);
+        chrome.storage.local.set({"flags": flagObject}, function() {
+            console.log("flags are set");
+        })
+    }
 }
 
 updateObjectFromSyncStorage()
 
-chrome.storage.local.get(['flags'], function(result) {
+
+/*function loadingContent(status) {
+    if (status) {
+        port.postMessage({name: "show switch"});
+    } else {
+        port.postMessage({name: "show loading"});
+    }
+}*/
+
+/*chrome.storage.local.get(['flags'], function(result) {
     console.log(result.flags);
     /*if(result.flags == null) {
         chrome.storage.local.set({flags: flagObject}, function () {
             console.log("There was no data in chrome storage, so was set letter = " + flagObject.letter + " lecture = " +  flagObject.lecture + " groupTable = " + flagObject.groupTable);
         });
     }*/
-})
+/*})*/
 
 chrome.storage.onChanged.addListener(function (changes) {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -34,12 +58,22 @@ chrome.storage.onChanged.addListener(function (changes) {
         });
     });
 })
+
 chrome.extension.onConnect.addListener(function(port) {
     console.log("Connected to port");
     port.onMessage.addListener(function(message) {
         console.log("message received " + message.name);
         let name = message.name;
+        console.log(name);
         switch(name) {
+            case "Send loading status":
+                console.log("sent loading status = " + loadingStatus);
+                if (loadingStatus) {
+                    port.postMessage({name: "show loading"});
+                } else {
+                    port.postMessage({name: "show switch"});
+                }
+                break;
             case "Send flags":
                 updateObjectFromSyncStorage();
                 console.log("sending flagObject = " + flagObject);
@@ -72,13 +106,25 @@ chrome.extension.onConnect.addListener(function(port) {
 
 chrome.runtime.onMessage.addListener(
     function(request) {
-        if (request.message === "send flags") {
-            updateObjectFromSyncStorage();
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.sendMessage(tabs[0].id, {name: "flags", flags: flagObject}, function(response) {
-                    console.log("sending response to content script, response = " + response);
+        switch(request.message) {
+            case "send flags":
+                updateObjectFromSyncStorage();
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    chrome.tabs.sendMessage(tabs[0].id, {name: "flags", flags: flagObject}, function(response) {
+                        console.log("sending response to content script, response = " + response);
+                    });
                 });
-            });
+                break;
+            case "loading data started":
+                loadingStatus = true;
+                //port.postMessage({name: "show loading"});
+                console.log("message about data refreshing received");
+                break;
+            case "loading data ended":
+                loadingStatus = false;
+                //port.postMessage({name: "show switch"});
+                console.log("message about data refreshing being finished received");
+                break;
         }
     }
 );
