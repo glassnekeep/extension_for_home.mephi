@@ -327,6 +327,9 @@ async function createSendLetterToTutorElements() {
 }
 
 async function getTutorUrlMap() {
+    chrome.runtime.sendMessage({message: "loading data started"}, function(response) {
+        console.log("sent loading data request, response = " + response);
+    });
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
     let tutorHrefMap = {};
@@ -355,6 +358,9 @@ async function getTutorUrlMap() {
             }
         })
     console.log(tutorHrefMap);
+    chrome.runtime.sendMessage({message: "loading data ended"}, function(response) {
+        console.log("sent loading data request, response = " + response);
+    });
     return tutorHrefMap;
 }
 
@@ -384,56 +390,10 @@ function getTutorLetterUrl() {
 getTutorLetterUrl()
 
 let tutorUrlList;
-/*createSendLetterToTutorElements().then((res) => {
-    tutorUrlList = res;
-    chrome.runtime.sendMessage({message: "send flags"}, function(response) {
-        console.log("sent flag request, response = " + response);
-    });
-})*/
 
 chrome.runtime.sendMessage({message: "send flags"}, function(response) {
     console.log("sent flag request, response = " + response);
 });
-
-let chevronRight = document.querySelector(".fa-chevron-right");
-let chevronLeft = document.querySelector(".fa-chevron-left");
-let btn_stud = document.querySelector(".btn_stud");
-
-function listener() {
-    console.log("listener activated");
-    tutorUrlList = [];
-    console.log(tutorUrlList.length);
-    /*createSendLetterToTutorElements().then((res) => {
-        tutorUrlList = res;
-        chrome.runtime.sendMessage({message: "send flags"}, function (response) {
-            console.log("sent flag request, response = " + response);
-        });
-    })*/
-    getTutorLetterUrl()
-    setTimeout(function() {
-        chrome.runtime.sendMessage({message: "send flags"}, function (response) {
-            console.log("sent flag request, response = " + response);
-        });
-        let chevronRight = document.querySelector(".fa-chevron-right");
-        let chevronLeft = document.querySelector(".fa-chevron-left");
-        if (chevronLeft != null && chevronRight != null) {
-            let parentRight = chevronRight.parentElement
-            let parentLeft = chevronLeft.parentElement
-            parentRight.onclick = listener;
-            parentLeft.onclick = listener;
-        }
-    }, 4000)
-}
-if (chevronLeft != null && chevronRight != null) {
-    let parentRight = chevronRight.parentElement
-    let parentLeft = chevronLeft.parentElement
-    parentRight.onclick = listener;
-    parentLeft.onclick = listener;
-}
-
-if (btn_stud != null) {
-    btn_stud.addEventListener("click", listener)
-}
 
 function initFunctionality() {
     if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
@@ -466,12 +426,25 @@ function initFunctionality() {
                 for(let i = 0; i < tutorList.length; i++) {
                     let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
                     console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
-                    tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
-                        "        <div class=\"dropdown-content\">\n" +
-                        "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
-                        "                Написать" +
-                        "            </a>" +
-                        "        </div>"
+                    try {
+                        tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
+                            "        <div class=\"dropdown-content\">\n" +
+                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
+                            "                Написать" +
+                            "            </a>" +
+                            "        </div>"
+                    } catch (e) {
+                        getTutorUrlMap().then((res) => {
+                            Object.assign(hrefMap, res)
+                            console.log("hrefMap == " + hrefMap);
+                            let links = {};
+                            Object.assign(links,  res)
+                            chrome.storage.local.set({"links": links}, function () {
+                                console.log("links are set");
+                            });
+                        })
+                        initFunctionality()
+                    }
                 }
             } else {
                 console.log("letterArray.length = " + letterArray.length);
@@ -501,8 +474,54 @@ function initFunctionality() {
     }
 }
 
+function listener() {
+    console.log("listener activated");
+    tutorUrlList = [];
+    console.log(tutorUrlList.length);
+    getTutorLetterUrl()
+    setTimeout(function() {
+        chrome.runtime.sendMessage({message: "send flags"}, function (response) {
+            console.log("sent flag request, response = " + response);
+        });
+        let chevronRight = document.querySelector(".fa-chevron-right");
+        let chevronLeft = document.querySelector(".fa-chevron-left");
+        let sideMenuOptions = document.querySelector(".sidebar-nav").querySelectorAll("a");
+        if(sideMenuOptions.length !== 0) {
+            sideMenuOptions.forEach(function(element) {
+                element.onclick = listener;
+            })
+        }
+        if (chevronLeft != null && chevronRight != null) {
+            let parentRight = chevronRight.parentElement
+            let parentLeft = chevronLeft.parentElement
+            parentRight.onclick = listener;
+            parentLeft.onclick = listener;
+        }
+    }, 4000)
+}
+
+function initContentScriptFunctionality() {
+    getTutorLetterUrl();
+    initFunctionality();
+    let chevronRight = document.querySelector(".fa-chevron-right");
+    let chevronLeft = document.querySelector(".fa-chevron-left");
+    let sideMenuOptions = document.querySelector(".sidebar-nav").querySelectorAll("a");
+    if(sideMenuOptions.length !== 0) {
+        sideMenuOptions.forEach(function(element) {
+            element.onclick = listener;
+        })
+    }
+    if (chevronLeft != null && chevronRight != null) {
+        let parentRight = chevronRight.parentElement;
+        let parentLeft = chevronLeft.parentElement;
+        parentRight.onclick = listener;
+        parentLeft.onclick = listener;
+    }
+}
+
+initContentScriptFunctionality();
+
 chrome.runtime.onMessage.addListener(function(request) {
-    //console.log("received message from background script, letter = " + request.flags.letter + " lecture =  " + request.flags.lecture + " groupTable = " + request.flags.groupTable);
     if (request.name === "flags") {
         writeLetterButtonFunctionalityEnabledFlag = request.flags.letter;
         lectureFilterFunctionalityFlag = request.flags.lecture;
