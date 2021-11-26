@@ -41,6 +41,12 @@ var port = chrome.extension.connect({
 });
 
 port.postMessage({name: "Send flags"});
+
+port.postMessage({name: "Send loading status"})
+setInterval(function() {
+    port.postMessage({name: "Send loading status"})
+}, 1000);
+
 port.onMessage.addListener(function(message) {
     console.log("message received " + message);
     let name = message.name;
@@ -49,6 +55,9 @@ port.onMessage.addListener(function(message) {
             let letter = message.flags.letter;
             let lecture = message.flags.lecture;
             let groupTable = message.flags.groupTable;
+            let lectureFilterFunctionalitySwitcher = document.querySelector("#lecture-filter-functionality-enabled");
+            let groupMatesTableFunctionalitySwitcher = document.querySelector("#group-mates-table-functionality-enabled");
+            let sendEmailDirectlyToTutorFunctionalitySwitcher = document.querySelector("#send-email-directly-to-tutor-functionality-enabled");
             console.log("received flags from background script letter = " + letter + " lecture = " + lecture + " groupTable = " + groupTable);
             if(letter) {
                 if(!sendEmailDirectlyToTutorFunctionalitySwitcher.hasAttribute("checked")) {sendEmailDirectlyToTutorFunctionalitySwitcher.setAttribute("checked", "")}
@@ -67,6 +76,7 @@ port.onMessage.addListener(function(message) {
             }
             break;
         case "show loading":
+            console.log("received loading status message");
             let switchDiv = document.querySelector(".mainSwitchDiv");
             if (switchDiv) {
                 switchDiv.remove();
@@ -75,8 +85,13 @@ port.onMessage.addListener(function(message) {
             if (!loading1) {
                 document.body.innerHTML += loadingElement;
             }
+            setTimeout(function () {
+                port.postMessage({name: "Send flags"});
+                console.log("Asked for flags");
+            }, 2000)
             break;
         case "show switch":
+            console.log("received loading finished status message");
             let loading = document.querySelector("#loadingMessage");
             if (loading) {
                 loading.remove();
@@ -85,6 +100,10 @@ port.onMessage.addListener(function(message) {
             if (!switch1) {
                 document.body.innerHTML += switchElement;
             }
+            setTimeout(function () {
+                port.postMessage({name: "Send flags"});
+                console.log("Asked for flags");
+            }, 2000)
             break;
     }
 });

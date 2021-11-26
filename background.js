@@ -1,33 +1,46 @@
-var writeLetterButtonFunctionalityEnabledFlag;
-var lectureFilterFunctionalityFlag;
-var groupMatesTableFunctionalityFlag;
+var writeLetterButtonFunctionalityEnabledFlag = true;
+var lectureFilterFunctionalityFlag = true;
+var groupMatesTableFunctionalityFlag = true;
 var flagObject = {
     letter: writeLetterButtonFunctionalityEnabledFlag,
     lecture: lectureFilterFunctionalityFlag,
     groupTable: groupMatesTableFunctionalityFlag
 }
 
-let contentStatus = true
+let loadingStatus = false;
 
 function updateObjectFromSyncStorage() {
-    chrome.storage.local.get(['flags'], function(result) {
-        console.log(result.flags);
-        flagObject.letter = result.flags.letter;
-        flagObject.lecture = result.flags.lecture;
-        flagObject.groupTable = result.flags.groupTable;
-    })
+    try {
+        chrome.storage.local.get(['flags'], function(result) {
+            console.log(result.flags);
+            if (result.flags != null) {
+                flagObject.letter = result.flags.letter;
+                flagObject.lecture = result.flags.lecture;
+                flagObject.groupTable = result.flags.groupTable;
+            } else {
+                chrome.storage.local.set({"flags": flagObject}, function() {
+                    console.log("flags are set");
+                })
+            }
+        })
+    } catch (e) {
+        console.log("error = " + e);
+        chrome.storage.local.set({"flags": flagObject}, function() {
+            console.log("flags are set");
+        })
+    }
 }
 
 updateObjectFromSyncStorage()
 
 
-function loadingContent(status) {
+/*function loadingContent(status) {
     if (status) {
         port.postMessage({name: "show switch"});
     } else {
         port.postMessage({name: "show loading"});
     }
-}
+}*/
 
 /*chrome.storage.local.get(['flags'], function(result) {
     console.log(result.flags);
@@ -45,12 +58,22 @@ chrome.storage.onChanged.addListener(function (changes) {
         });
     });
 })
+
 chrome.extension.onConnect.addListener(function(port) {
     console.log("Connected to port");
     port.onMessage.addListener(function(message) {
         console.log("message received " + message.name);
         let name = message.name;
+        console.log(name);
         switch(name) {
+            case "Send loading status":
+                console.log("sent loading status = " + loadingStatus);
+                if (loadingStatus) {
+                    port.postMessage({name: "show loading"});
+                } else {
+                    port.postMessage({name: "show switch"});
+                }
+                break;
             case "Send flags":
                 updateObjectFromSyncStorage();
                 console.log("sending flagObject = " + flagObject);
@@ -93,11 +116,13 @@ chrome.runtime.onMessage.addListener(
                 });
                 break;
             case "loading data started":
-                loadingContent(true);
+                loadingStatus = true;
+                //port.postMessage({name: "show loading"});
                 console.log("message about data refreshing received");
                 break;
             case "loading data ended":
-                loadingContent(false);
+                loadingStatus = false;
+                //port.postMessage({name: "show switch"});
                 console.log("message about data refreshing being finished received");
                 break;
         }
