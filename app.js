@@ -4,6 +4,10 @@ let groupMatesTableFunctionalityFlag;
 
 let dataLoaded = true;
 
+let hrefMap = {};
+
+let tutorUrlList;
+
 async function getGroupMembersDOM() {
     let buttonGroup = document.querySelector(".btn-group");
     let groupTimetableUrl = buttonGroup.querySelector("a").getAttribute("href");
@@ -344,20 +348,23 @@ async function getTutorUrlMap() {
             let k = 0;
             for (let i = 0; i < tutorList.length; i++) {
                 let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-                await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
-                    .then(res => res.text())
-                    .then(async function (responseText) {
-                        const doc = new DOMParser().parseFromString(responseText, 'text/html');
-                        const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                        await fetch(tutorPersonalPageUrl)
-                            .then(result => result.text())
-                            .then((respondText) => {
-                                const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                                console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
-                                tutorHrefMap[tutorTimetableHref] = docPersonal.querySelector(".btn-primary").getAttribute("href");
-                                k++;
-                            })
-                    })
+                if (tutorHrefMap[tutorTimetableHref] == null) {
+                    await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
+                        .then(res => res.text())
+                        .then(async function (responseText) {
+                            const doc = new DOMParser().parseFromString(responseText, 'text/html');
+                            const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
+                            await fetch(tutorPersonalPageUrl)
+                                .then(result => result.text())
+                                .then((respondText) => {
+                                    const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
+                                    console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
+                                    tutorHrefMap[tutorTimetableHref] = docPersonal.querySelector(".btn-primary").getAttribute("href");
+                                    k++;
+                                })
+                        })
+                }
+                k++;
             }
         })
     console.log(tutorHrefMap);
@@ -367,8 +374,6 @@ async function getTutorUrlMap() {
     dataLoaded = true;
     return tutorHrefMap;
 }
-
-let hrefMap = {};
 
 function getTutorLetterUrl() {
     chrome.storage.local.get('links', function(result) {
@@ -403,91 +408,18 @@ function getTutorLetterUrl() {
     })
 }
 
-getTutorLetterUrl()
-
-let tutorUrlList;
-
 chrome.runtime.sendMessage({message: "send flags"}, function(response) {
     console.log("sent flag request, response = " + response);
 });
 
 function initFunctionality() {
     if (dataLoaded) {
-        if(document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
-            if(lectureFilterFunctionalityFlag) {
-                let selector = document.getElementById("selector");
-                let datePicker = document.getElementById("datePicker");
-                let clearTheFilter = document.getElementById("clearTheFilter");
-                console.log("Lecture filter status is true");
-                if(selector == null && datePicker == null && clearTheFilter == null) {
-                    lessonVideosMainFunction().then(res => {console.log(res + "   res")});
-                }
-            } else {
-                try {
-                    document.getElementById("selector").remove();
-                    document.getElementById("datePicker").remove();
-                    document.getElementById("clearTheFilter").remove();
-                } catch (e) {
-                    console.log("error = " + e);
-                }
-            }
+        if (document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+            lessonVideosFunctionality()
         }
-        if(document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
-            let letterArray = document.querySelectorAll(".dropdown-letter");
-            console.log("letterArray.length = " + letterArray.length);
-            let mainTable = document.querySelector("#main-table");
-            if(writeLetterButtonFunctionalityEnabledFlag) {
-                if(letterArray.length === 0) {
-                    console.log("letterArray.length = " + letterArray.length);
-                    let tutorList = document.querySelectorAll("span.text-nowrap");
-                    for(let i = 0; i < tutorList.length; i++) {
-                        let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
-                        console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
-                        try {
-                            tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
-                                "        <div class=\"dropdown-content\">\n" +
-                                "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
-                                "                Написать" +
-                                "            </a>" +
-                                "        </div>"
-                        } catch (e) {
-                            getTutorUrlMap().then((res) => {
-                                Object.assign(hrefMap, res)
-                                console.log("hrefMap == " + hrefMap);
-                                let links = {};
-                                Object.assign(links,  res)
-                                chrome.storage.local.set({"links": links}, function () {
-                                    console.log("links are set");
-                                });
-                            })
-                            initFunctionality()
-                        }
-                    }
-                } else {
-                    console.log("letterArray.length = " + letterArray.length);
-                }
-            } else {
-                try {
-                    letterArray.forEach(function(node) {
-                        node.outerHTML = node.firstElementChild.outerHTML;
-                    })
-                } catch (e) {
-                    console.log("error = " + e);
-                }
-            }
-            if(groupMatesTableFunctionalityFlag) {
-                if(mainTable == null) {
-                    getGroupMembersDOM().then(res => console.log(res + "    res"));
-                }
-                console.log("groupTable status is true");
-            } else {
-                try {
-                    document.getElementById("main-table").remove();
-                    console.log("groupTable status is false");
-                } catch (e) {
-                    console.log("error = " + e);
-                }
-            }
+        if (document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
+            letterFunctionality();
+            groupMembersTableFunctionality();
         }
     }
 }
@@ -496,7 +428,9 @@ function listener() {
     console.log("listener activated");
     tutorUrlList = [];
     console.log(tutorUrlList.length);
-    getTutorLetterUrl()
+    if ((document.location.toString().indexOf("home.mephi.ru/users/") > 0)) {
+        getTutorLetterUrl()
+    }
     setTimeout(function() {
         chrome.runtime.sendMessage({message: "send flags"}, function (response) {
             console.log("sent flag request, response = " + response);
@@ -523,7 +457,9 @@ function listener() {
 }
 
 function initContentScriptFunctionality() {
-    getTutorLetterUrl();
+    if ((document.location.toString().indexOf("home.mephi.ru/users/") > 0)) {
+        getTutorLetterUrl()
+    }
     initFunctionality();
     let chevronRight = document.querySelector(".fa-chevron-right");
     let chevronLeft = document.querySelector(".fa-chevron-left");
@@ -555,3 +491,87 @@ chrome.runtime.onMessage.addListener(function(request) {
     }
     initFunctionality();
 })
+
+function letterFunctionality() {
+    getTutorLetterUrl();
+    let letterArray = document.querySelectorAll(".dropdown-letter");
+    console.log("letterArray.length = " + letterArray.length);
+    if (writeLetterButtonFunctionalityEnabledFlag) {
+        if (letterArray.length === 0) {
+            console.log("letterArray.length = " + letterArray.length);
+            let tutorList = document.querySelectorAll("span.text-nowrap");
+            for (let i = 0; i < tutorList.length; i++) {
+                let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
+                console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
+                try {
+                    tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
+                        "        <div class=\"dropdown-content\">\n" +
+                        "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + hrefMap[tutorTimetableLink.toString()] + "><i class=\"fa fa-envelope\"></i>\n" +
+                        "                Написать" +
+                        "            </a>" +
+                        "        </div>"
+                } catch (e) {
+                    getTutorUrlMap().then((res) => {
+                        Object.assign(hrefMap, res)
+                        console.log("hrefMap == " + hrefMap);
+                        let links = {};
+                        Object.assign(links, res)
+                        chrome.storage.local.set({"links": links}, function () {
+                            console.log("links are set");
+                        });
+                    })
+                    initFunctionality()
+                }
+            }
+        } else {
+            console.log("letterArray.length = " + letterArray.length);
+        }
+    } else {
+        try {
+            letterArray.forEach(function (node) {
+                node.outerHTML = node.firstElementChild.outerHTML;
+            })
+        } catch (e) {
+            console.log("error = " + e);
+        }
+    }
+}
+
+function lessonVideosFunctionality() {
+    if (lectureFilterFunctionalityFlag) {
+        let selector = document.getElementById("selector");
+        let datePicker = document.getElementById("datePicker");
+        let clearTheFilter = document.getElementById("clearTheFilter");
+        console.log("Lecture filter status is true");
+        if (selector == null && datePicker == null && clearTheFilter == null) {
+            lessonVideosMainFunction().then(res => {
+                console.log(res + "   res")
+            });
+        }
+    } else {
+        try {
+            document.getElementById("selector").remove();
+            document.getElementById("datePicker").remove();
+            document.getElementById("clearTheFilter").remove();
+        } catch (e) {
+            console.log("error = " + e);
+        }
+    }
+}
+
+function groupMembersTableFunctionality() {
+    let mainTable = document.querySelector("#main-table");
+    if (groupMatesTableFunctionalityFlag) {
+        if (mainTable == null) {
+            getGroupMembersDOM().then(res => console.log(res + "    res"));
+        }
+        console.log("groupTable status is true");
+    } else {
+        try {
+            document.getElementById("main-table").remove();
+            console.log("groupTable status is false");
+        } catch (e) {
+            console.log("error = " + e);
+        }
+    }
+}
