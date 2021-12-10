@@ -1,12 +1,13 @@
 table {
     position: inherit;
-    background: chocolate;
 }
+
 #main-table {
-    border: 1px solid gray;
+    border: 1px solid #b5b5b5;
 }
+
 tr {
-    border: 1px solid gray;
+    border: 1px solid #b8b8b8;
     padding: 10px;
     min-width: 5000px;
     background: white;

@@ -2,7 +2,7 @@ let writeLetterButtonFunctionalityEnabledFlag;
 let lectureFilterFunctionalityFlag;
 let groupMatesTableFunctionalityFlag;
 
-let dataLoaded = true;
+let dataLoaded = false;
 
 let hrefMap = {};
 
@@ -379,6 +379,7 @@ function getTutorLetterUrl() {
     chrome.storage.local.get('links', function(result) {
         if(result.links != null) {
             if (Object.keys(result.links).length !== 0) {
+                dataLoaded = true;
                 console.log(Object.keys(result.links).length);
                 Object.assign(hrefMap, result.links);
                 console.log("links are got " + result);
@@ -414,17 +415,23 @@ chrome.runtime.sendMessage({message: "send flags"}, function(response) {
 
 function initFunctionality() {
     if (dataLoaded) {
-        if (document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
-            lessonVideosFunctionality()
-        }
         if (document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
             letterFunctionality();
-            groupMembersTableFunctionality();
         }
+    }
+    if (document.location.toString().indexOf("home.mephi.ru/lesson_videos/") > 0) {
+        lessonVideosFunctionality()
+    }
+    if (document.location.toString().indexOf("home.mephi.ru/users/") > 0) {
+        groupMembersTableFunctionality();
     }
 }
 
 function listener() {
+    initFunctionality()
+    chrome.runtime.sendMessage({message: "send flags"}, function(response) {
+        console.log("sent flag request, response = " + response);
+    });
     console.log("listener activated");
     tutorUrlList = [];
     console.log(tutorUrlList.length);
@@ -538,6 +545,7 @@ function letterFunctionality() {
 }
 
 function lessonVideosFunctionality() {
+    console.log("lectureFlag = " + lectureFilterFunctionalityFlag);
     if (lectureFilterFunctionalityFlag) {
         let selector = document.getElementById("selector");
         let datePicker = document.getElementById("datePicker");
@@ -575,3 +583,5 @@ function groupMembersTableFunctionality() {
         }
     }
 }
+
+document.onload = initContentScriptFunctionality
