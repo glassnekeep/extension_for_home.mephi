@@ -30,7 +30,7 @@ async function getGroupMembersDOM() {
                     tabled = document.createElement("td");
                     td = document.createElement("table");
                     tabled.append(td);
-                    console.log("if worked");
+                    //console.log("if worked");
                 }
                 let currentMember = memberList[i];
                 currentMember.setAttribute("class", "group-member")
@@ -177,7 +177,7 @@ async function getFullLNodeList(nodeListList) {
                 })
             })
     }
-    console.log(nodeList.length);
+    //console.log(nodeList.length);
     return nodeList;
 }
 
@@ -235,6 +235,7 @@ function filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, base
 }
 
 async function lessonVideosMainFunction() {
+    console.log("lessonVideosMainFunction");
     let element = document.createElement("select");
     element.setAttribute("name", "selectSubject");
     element.setAttribute("id", "selector");
@@ -251,7 +252,7 @@ async function lessonVideosMainFunction() {
     let parent = baseNodeList[0].parentNode;
     let fullNodeList = [];
     await getFullLNodeList(baseNodeList).then(array => {
-        console.log(array.length);
+        //console.log(array.length);
         array.forEach(function(node) {
             fullNodeList.push(node);
         })
@@ -286,50 +287,6 @@ async function lessonVideosMainFunction() {
         filterBySubjectAndDate(element, datePicker, parent, setOfSubjects, baseNodeList);
     }
     return 0;
-}
-
-async function createSendLetterToTutorElements() {
-    let tutorList = document.querySelectorAll("span.text-nowrap");
-    let tutorHrefList = new Array(tutorList.length);
-    let k = 0;
-    for(let i = 0; i < tutorList.length; i++) {
-        let tutorTimetableHref = tutorList[i].querySelector("a").getAttribute("href");
-        await fetch(/*'https://home.mephi.ru' + */tutorTimetableHref)
-            .then(res => res.text())
-            .then(async function (responseText){
-                const doc = new DOMParser().parseFromString(responseText, 'text/html');
-                const tutorPersonalPageUrl = doc.querySelector('h1').querySelector("a").getAttribute("href");
-                await fetch(tutorPersonalPageUrl)
-                    .then(result => result.text())
-                    .then((respondText) => {
-                        const docPersonal = new DOMParser().parseFromString(respondText, "text/html");
-                        /*tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
-                            "        <div class=\"dropdown-content\">\n" +
-                            "           <a class=\"btn btn-primary wrap\" id=\"write-letter-to-tutor\" href=" + writeLetterUrl + "><i class=\"fa fa-envelope\"></i>\n" +
-                            "                Написать" +
-                            "            </a>" +
-                            "        </div>"*/
-                        console.log("href = " + docPersonal.querySelector(".btn-primary").getAttribute("href"))
-                        tutorHrefList[i] = docPersonal.querySelector(".btn-primary").getAttribute("href");
-                        k++;
-                    })
-            })
-    }
-    console.log("tutorHrefList = " + tutorHrefList);
-    console.log("tutorHrefList.indexOf " + tutorHrefList.indexOf(""));
-
-    /*let interval = await setInterval(() => {
-        if(k === tutorList.length) {
-            console.log("everything is done, k = " + k);
-            clearInterval(interval);
-            return tutorHrefList;
-        } else {
-            console.log("k = " + k);
-        }
-    }, 1000)*/
-    console.log("interval is closed");
-    console.log("return tutorHrefList");
-    return tutorHrefList;
 }
 
 async function getTutorUrlMap() {
@@ -367,7 +324,7 @@ async function getTutorUrlMap() {
                 k++;
             }
         })
-    console.log(tutorHrefMap);
+    //console.log(tutorHrefMap);
     chrome.runtime.sendMessage({message: "loading data ended"}, function(response) {
         console.log("sent loading data request, response = " + response);
     });
@@ -380,14 +337,14 @@ function getTutorLetterUrl() {
         if(result.links != null) {
             if (Object.keys(result.links).length !== 0) {
                 dataLoaded = true;
-                console.log(Object.keys(result.links).length);
+                //console.log(Object.keys(result.links).length);
                 Object.assign(hrefMap, result.links);
-                console.log("links are got " + result);
+                //console.log("links are got " + result);
             } else {
-                console.log("empty storage");
+                //console.log("empty storage");
                 getTutorUrlMap().then((res) => {
                     Object.assign(hrefMap, res)
-                    console.log("hrefMap == " + hrefMap);
+                    //console.log("hrefMap == " + hrefMap);
                     let links = {};
                     Object.assign(links,  res)
                     chrome.storage.local.set({"links": links}, function () {
@@ -398,7 +355,7 @@ function getTutorLetterUrl() {
         } else {
             getTutorUrlMap().then((res) => {
                 Object.assign(hrefMap, res)
-                console.log("hrefMap == " + hrefMap);
+                //console.log("hrefMap == " + hrefMap);
                 let links = {};
                 Object.assign(links,  res)
                 chrome.storage.local.set({"links": links}, function () {
@@ -429,12 +386,13 @@ function initFunctionality() {
 
 function listener() {
     initFunctionality()
+    console.log("ready state = " + document.readyState);
     chrome.runtime.sendMessage({message: "send flags"}, function(response) {
         console.log("sent flag request, response = " + response);
     });
-    console.log("listener activated");
+    //console.log("listener activated");
     tutorUrlList = [];
-    console.log(tutorUrlList.length);
+    //console.log(tutorUrlList.length);
     if ((document.location.toString().indexOf("home.mephi.ru/users/") > 0)) {
         getTutorLetterUrl()
     }
@@ -502,14 +460,14 @@ chrome.runtime.onMessage.addListener(function(request) {
 function letterFunctionality() {
     getTutorLetterUrl();
     let letterArray = document.querySelectorAll(".dropdown-letter");
-    console.log("letterArray.length = " + letterArray.length);
+    //console.log("letterArray.length = " + letterArray.length);
     if (writeLetterButtonFunctionalityEnabledFlag) {
         if (letterArray.length === 0) {
-            console.log("letterArray.length = " + letterArray.length);
+            //console.log("letterArray.length = " + letterArray.length);
             let tutorList = document.querySelectorAll("span.text-nowrap");
             for (let i = 0; i < tutorList.length; i++) {
                 let tutorTimetableLink = tutorList[i].querySelector("a").getAttribute("href");
-                console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
+                //console.log("hrefTutor = " + hrefMap[tutorTimetableLink.toString()]);
                 try {
                     tutorList[i].outerHTML = "<div class=\"dropdown-letter\">\n" + tutorList[i].outerHTML +
                         "        <div class=\"dropdown-content\">\n" +
@@ -520,7 +478,7 @@ function letterFunctionality() {
                 } catch (e) {
                     getTutorUrlMap().then((res) => {
                         Object.assign(hrefMap, res)
-                        console.log("hrefMap == " + hrefMap);
+                        //console.log("hrefMap == " + hrefMap);
                         let links = {};
                         Object.assign(links, res)
                         chrome.storage.local.set({"links": links}, function () {
@@ -531,7 +489,7 @@ function letterFunctionality() {
                 }
             }
         } else {
-            console.log("letterArray.length = " + letterArray.length);
+            //console.log("letterArray.length = " + letterArray.length);
         }
     } else {
         try {
@@ -546,14 +504,15 @@ function letterFunctionality() {
 
 function lessonVideosFunctionality() {
     console.log("lectureFlag = " + lectureFilterFunctionalityFlag);
+    console.log("lessonVideosFunctionality");
     if (lectureFilterFunctionalityFlag) {
         let selector = document.getElementById("selector");
         let datePicker = document.getElementById("datePicker");
         let clearTheFilter = document.getElementById("clearTheFilter");
-        console.log("Lecture filter status is true");
+        //console.log("Lecture filter status is true");
         if (selector == null && datePicker == null && clearTheFilter == null) {
             lessonVideosMainFunction().then(res => {
-                console.log(res + "   res")
+                //console.log(res + "   res")
             });
         }
     } else {
@@ -562,7 +521,7 @@ function lessonVideosFunctionality() {
             document.getElementById("datePicker").remove();
             document.getElementById("clearTheFilter").remove();
         } catch (e) {
-            console.log("error = " + e);
+            //console.log("error = " + e);
         }
     }
 }
@@ -583,5 +542,3 @@ function groupMembersTableFunctionality() {
         }
     }
 }
-
-document.onload = initContentScriptFunctionality
